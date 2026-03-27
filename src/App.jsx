@@ -77,15 +77,6 @@ const features = [
 
 const documents = [
   {
-    id: "edition2-field-dev-guide",
-    title: "MeshCore Edition2 Field Developer Guide",
-    label: "Field Ops",
-    date: "MAR 2026",
-    description:
-      "Hands-on developer procedures for field setup, diagnostics, and deployment tuning.",
-    href: "/docs/meshcore-edition2-field-developer-guide.pdf",
-  },
-  {
     id: "intro-guide",
     title: "MeshCore Introduction Guide",
     label: "Foundation",
@@ -93,6 +84,15 @@ const documents = [
     description:
       "Project fundamentals, architecture overview, and onboarding reference for new operators.",
     href: "/docs/meshcore-introduction-guide.pdf",
+  },
+  {
+    id: "edition2-field-dev-guide",
+    title: "MeshCore Edition2 Field Developer Guide",
+    label: "Field Ops",
+    date: "MAR 2026",
+    description:
+      "Hands-on developer procedures for field setup, diagnostics, and deployment tuning.",
+    href: "/docs/meshcore-edition2-field-developer-guide.pdf",
   },
 ];
 
@@ -298,14 +298,12 @@ const DocumentationView = ({ docs }) => (
                   PDF PAGE PREVIEW
                 </span>
               </div>
-              <div className="p-4 space-y-2">
-                <div className="h-2 w-2/3 bg-blue-100 rounded" />
-                <div className="h-1.5 w-full bg-slate-100 rounded" />
-                <div className="h-1.5 w-5/6 bg-slate-100 rounded" />
-                <div className="h-1.5 w-4/5 bg-slate-100 rounded" />
-                <div className="h-1.5 w-full bg-slate-100 rounded" />
-                <div className="h-1.5 w-3/5 bg-slate-100 rounded" />
-                <div className="h-10 w-full bg-slate-50 border border-slate-100 rounded mt-3" />
+              <div className="h-[calc(100%-2rem)] bg-slate-50">
+                <iframe
+                  title={`${doc.title} preview`}
+                  src={`${doc.href}#page=1&zoom=page-fit`}
+                  className="h-full w-full"
+                />
               </div>
             </div>
           </div>
