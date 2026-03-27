@@ -11,7 +11,6 @@ import {
   GitBranch,
   FileText,
   ExternalLink,
-  Image as ImageIcon,
 } from "lucide-react";
 
 const updates = [
@@ -130,16 +129,6 @@ const Navbar = ({ activeTab, setActiveTab }) => (
           Home
         </button>
         <button
-          onClick={() => setActiveTab("updates")}
-          className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
-            activeTab === "updates"
-              ? "bg-slate-100 text-blue-600"
-              : "text-slate-500 hover:text-slate-800"
-          }`}
-        >
-          Updates
-        </button>
-        <button
           onClick={() => setActiveTab("rnd")}
           className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
             activeTab === "rnd"
@@ -171,23 +160,6 @@ const Navbar = ({ activeTab, setActiveTab }) => (
 const HomeView = ({ featureList }) => (
   <div className="w-full pt-32 pb-20 px-6 md:px-10 lg:px-14 animate-in fade-in duration-500">
     <section className="mb-24">
-      <div className="w-full h-48 md:h-64 bg-slate-100 rounded-3xl mb-12 border border-slate-200 overflow-hidden relative group">
-        <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:20px_20px] opacity-50" />
-        <div className="absolute inset-0 flex items-center justify-center flex-col gap-3">
-          <div className="p-4 rounded-full bg-white shadow-sm border border-slate-100 text-slate-300 group-hover:scale-110 transition-transform duration-500">
-            <ImageIcon size={32} />
-          </div>
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-            Hardware Visualization
-          </span>
-        </div>
-        <div className="absolute bottom-4 right-4 flex gap-2">
-          <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-          <div className="w-2 h-2 rounded-full bg-slate-300" />
-          <div className="w-2 h-2 rounded-full bg-slate-300" />
-        </div>
-      </div>
-
       <div className="flex items-center gap-2 text-blue-600 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
         <Activity size={12} /> Protocol v1.14
       </div>
@@ -424,7 +396,6 @@ const DocumentationView = ({ docs }) => (
 
 const App = () => {
   const [activeTab, setActiveTab] = useState("home");
-  const releaseUpdates = updates.filter((update) => update.type !== "R&D");
   const rndUpdates = updates.filter((update) => update.type === "R&D");
 
   return (
@@ -445,11 +416,7 @@ const App = () => {
             researchDocs={rndDocuments}
           />
         ) : (
-          <UpdatesView
-            updateList={releaseUpdates}
-            title="Releases"
-            subtitle="MeshCore Technical Logs"
-          />
+          <HomeView featureList={features} />
         )}
       </main>
 
