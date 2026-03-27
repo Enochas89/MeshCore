@@ -96,6 +96,18 @@ const documents = [
   },
 ];
 
+const rndDocuments = [
+  {
+    id: "voice-messages-guide",
+    title: "MeshCore VoiceMessages Guide",
+    label: "R&D Doc",
+    date: "MAR 2026",
+    description:
+      "Experimental reference for voice message workflows and implementation details.",
+    href: "/docs/meshcore-voicemessages-guide.pdf",
+  },
+];
+
 const Navbar = ({ activeTab, setActiveTab }) => (
   <nav className="fixed top-6 left-6 z-50">
     <div className="bg-white/80 backdrop-blur-md border border-slate-200 rounded-xl p-1.5 flex items-center gap-2 shadow-sm">
@@ -218,7 +230,7 @@ const HomeView = ({ featureList }) => (
   </div>
 );
 
-const UpdatesView = ({ updateList, title, subtitle }) => (
+const UpdatesView = ({ updateList, title, subtitle, researchDocs = [] }) => (
   <div className="w-full pt-32 pb-20 px-6 md:px-10 lg:px-14 animate-in slide-in-from-left-4 duration-500">
     <div className="mb-16">
       <h2 className="text-2xl font-bold text-slate-900 mb-2">{title}</h2>
@@ -226,6 +238,71 @@ const UpdatesView = ({ updateList, title, subtitle }) => (
         {subtitle}
       </p>
     </div>
+
+    {researchDocs.length > 0 ? (
+      <section className="mb-14 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {researchDocs.map((doc) => (
+          <article
+            key={doc.id}
+            className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all"
+          >
+            <div className="relative h-72 mb-6">
+              <div className="absolute inset-x-8 top-3 bottom-2 bg-slate-200/80 rounded-lg rotate-[3deg]" />
+              <div className="absolute inset-x-7 top-2 bottom-3 bg-slate-300/60 rounded-lg -rotate-[2deg]" />
+              <div className="absolute inset-x-6 top-0 bottom-6 bg-white rounded-xl border border-slate-300 shadow-lg overflow-hidden">
+                <div className="h-8 bg-gradient-to-r from-slate-100 to-white border-b border-slate-200 px-3 flex items-center gap-2">
+                  <FileText size={12} className="text-blue-600" />
+                  <span className="text-[9px] font-black uppercase tracking-wider text-slate-500">
+                    R&D PDF PREVIEW
+                  </span>
+                </div>
+                <div className="h-[calc(100%-2rem)] bg-slate-50">
+                  <iframe
+                    title={`${doc.title} preview`}
+                    src={`${doc.href}#page=1&zoom=page-fit`}
+                    className="h-full w-full"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[9px] font-black text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded tracking-tighter">
+                {doc.label}
+              </span>
+              <span className="text-[9px] font-black text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded tracking-tighter">
+                {doc.date}
+              </span>
+            </div>
+
+            <h3 className="text-base font-bold text-slate-900 mb-2">
+              {doc.title}
+            </h3>
+            <p className="text-xs text-slate-500 leading-relaxed mb-5">
+              {doc.description}
+            </p>
+
+            <div className="flex gap-2">
+              <a
+                href={doc.href}
+                download
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-[11px] hover:bg-blue-700 transition-all flex items-center gap-2"
+              >
+                <Download size={12} /> Download PDF
+              </a>
+              <a
+                href={doc.href}
+                target="_blank"
+                rel="noreferrer"
+                className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold text-[11px] hover:bg-slate-50 transition-all flex items-center gap-2"
+              >
+                <ExternalLink size={12} /> Open
+              </a>
+            </div>
+          </article>
+        ))}
+      </section>
+    ) : null}
 
     <div className="space-y-12">
       {updateList.map((update, idx) => (
@@ -365,6 +442,7 @@ const App = () => {
             updateList={rndUpdates}
             title="R&D Pipeline"
             subtitle="Upcoming Research And Development"
+            researchDocs={rndDocuments}
           />
         ) : (
           <UpdatesView
