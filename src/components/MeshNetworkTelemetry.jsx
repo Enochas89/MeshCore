@@ -30,6 +30,7 @@ const createNodes = (width, height, tileWidth, isMobile) => {
   const mobileStartY = Math.max(120, height * 0.14);
   const mobileEndY = Math.min(height * 0.66, height - 300);
   const mobileStep = (mobileEndY - mobileStartY) / (count - 1);
+  const mobileStagger = Math.min(28, width * 0.08);
 
   const nodes = [];
   for (let i = 0; i < count; i += 1) {
@@ -60,7 +61,9 @@ const createNodes = (width, height, tileWidth, isMobile) => {
       id,
       type,
       settings,
-      x: isMobile ? mobileX : startX + i * horizontalStep,
+      x: isMobile
+        ? mobileX + (i % 2 === 0 ? -mobileStagger : mobileStagger)
+        : startX + i * horizontalStep,
       y: isMobile
         ? mobileStartY + i * mobileStep
         : centerY + (i % 2 === 0 ? -yAmplitude : yAmplitude),
@@ -277,6 +280,8 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
   const sendHoverRef = useRef(false);
   const sendLockedRef = useRef(false);
   const autoTransmitHandledRef = useRef(0);
+  const mobileLayoutRef = useRef(false);
+  const lastAutoScrollTopRef = useRef(null);
 
   const initialized = startSignal > 0;
   const [status, setStatus] = useState({
@@ -313,8 +318,9 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
 
       boundsRef.current = { width, height };
       const isMobile = width < MOBILE_BREAKPOINT;
+      mobileLayoutRef.current = isMobile;
       const tileWidth = isMobile
-        ? Math.max(130, Math.min(160, width * 0.42))
+        ? Math.max(102, Math.min(128, width * 0.33))
         : Math.max(120, Math.min(180, width / 6));
       nodesRef.current = createNodes(width, height, tileWidth, isMobile);
       connectionsRef.current = [];
@@ -322,12 +328,28 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
       sendHotspotRef.current = null;
       sendHoverRef.current = false;
       sendLockedRef.current = false;
+      lastAutoScrollTopRef.current = null;
       setSendLocked(false);
       setStatus({
         tone: "idle",
         text: "NETWORK IDLE",
         sub: "Click SEND on SENDER_NODE - v2.4.18 Firmware",
       });
+    };
+
+    const autoScrollWithTrace = (traceY) => {
+      if (!mobileLayoutRef.current) return;
+      const rect = container.getBoundingClientRect();
+      const pageTarget = window.scrollY + rect.top + traceY - window.innerHeight * 0.45;
+      const clampedTarget = Math.max(0, pageTarget);
+      if (
+        lastAutoScrollTopRef.current !== null &&
+        Math.abs(clampedTarget - lastAutoScrollTopRef.current) < 8
+      ) {
+        return;
+      }
+      lastAutoScrollTopRef.current = clampedTarget;
+      window.scrollTo({ top: clampedTarget, behavior: "auto" });
     };
 
     const updateTransmission = () => {
@@ -356,6 +378,13 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
         currentLine.progress = Math.min(1, currentLine.progress + 0.02);
         if (currentLine.progress === 1) currentLine.complete = true;
       }
+
+      const yOffset = -20;
+      const traceY =
+        currentLine.from.y +
+        yOffset +
+        (currentLine.to.y - currentLine.from.y) * currentLine.progress;
+      autoScrollWithTrace(traceY);
 
       if (currentLine.complete) {
         transmissionStepRef.current += 1;
@@ -437,6 +466,19 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
       text: "PATHFINDING...",
       sub: "Establishing secure relay path",
     });
+
+    if (mobileLayoutRef.current && nodesRef.current.length > 0) {
+      const container = containerRef.current;
+      const firstNode = nodesRef.current[0];
+      if (container && firstNode) {
+        const rect = container.getBoundingClientRect();
+        const initialTop =
+          window.scrollY + rect.top + (firstNode.y - 20) - window.innerHeight * 0.45;
+        const clampedTop = Math.max(0, initialTop);
+        lastAutoScrollTopRef.current = clampedTop;
+        window.scrollTo({ top: clampedTop, behavior: "smooth" });
+      }
+    }
   }, [initialized]);
 
   useEffect(() => {
@@ -461,6 +503,7 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
     transmissionStepRef.current = -1;
     sendHoverRef.current = false;
     sendLockedRef.current = false;
+    lastAutoScrollTopRef.current = null;
     setSendLocked(false);
     setStatus({
       tone: "idle",
