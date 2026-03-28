@@ -20,8 +20,8 @@ const drawRoundedRect = (ctx, x, y, width, height, radius) => {
 
 const createNodes = (width, height, tileWidth, isMobile) => {
   const centerY = height * 0.42;
-  const startX = width * 0.12;
-  const endX = width * 0.88;
+  const startX = width * 0.08;
+  const endX = width * 0.92;
   const count = 5;
   const horizontalStep = (endX - startX) / (count - 1);
   const yAmplitude = Math.max(24, Math.min(40, height * 0.06));
@@ -203,8 +203,8 @@ const drawNode = (ctx, node, time, options = {}) => {
     ctx.textAlign = "left";
     ctx.fillText(setting.label, left, rowY);
     ctx.fillStyle = setting.color;
-    ctx.textAlign = "right";
-    ctx.fillText(setting.value, right, rowY);
+    ctx.textAlign = "left";
+    ctx.fillText(setting.value, left + 48, rowY);
   });
 
   if (showSendButton) {
@@ -563,12 +563,12 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
 
       <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-end p-4 md:p-8">
         <div className="flex flex-col xl:flex-row items-stretch xl:items-end justify-center gap-4 md:gap-6">
-          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-5 shadow-md w-full xl:w-72">
+          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-4 shadow-md w-full xl:w-60">
             <h3 className="font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2 flex items-center gap-2">
               <span className="w-2 h-4 bg-blue-500 rounded-full" />
               Node Types
             </h3>
-            <div className="space-y-3 text-sm">
+            <div className="space-y-2 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-bold text-slate-900 text-xs">Companion</div>
@@ -590,7 +590,7 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
             </div>
           </div>
 
-          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-5 shadow-md w-full xl:min-w-[420px]">
+          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-4 shadow-md w-full xl:min-w-[340px]">
             <div className="text-center w-full">
               <div
                 className={`${toneClass[status.tone]} font-mono text-xs font-black uppercase tracking-[0.2em]`}
@@ -602,7 +602,7 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
               </div>
             </div>
 
-            <div className="mt-3 flex items-center justify-between gap-3">
+            <div className="mt-2 flex items-center justify-between gap-3">
               <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
                 Send control moved to first tile
               </div>
