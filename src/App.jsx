@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Shield,
   Cpu,
@@ -142,7 +142,7 @@ const rndDocuments = [
   },
 ];
 
-const Navbar = ({ activeTab, setActiveTab }) => (
+const Navbar = ({ activeTab, setActiveTab, guidedTab }) => (
   <nav className="fixed top-6 left-6 z-50">
     <div className="bg-white/80 backdrop-blur-md border border-slate-200 rounded-xl p-1.5 flex items-center gap-2 shadow-sm">
       <div
@@ -168,7 +168,9 @@ const Navbar = ({ activeTab, setActiveTab }) => (
           className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
             activeTab === "rnd"
               ? "bg-slate-100 text-blue-600"
-              : "text-slate-500 hover:text-slate-800"
+              : guidedTab === "rnd"
+                ? "bg-blue-100 text-blue-700"
+                : "text-slate-500 hover:text-slate-800"
           }`}
         >
           R&D
@@ -178,7 +180,9 @@ const Navbar = ({ activeTab, setActiveTab }) => (
           className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
             activeTab === "video"
               ? "bg-slate-100 text-blue-600"
-              : "text-slate-500 hover:text-slate-800"
+              : guidedTab === "video"
+                ? "bg-blue-100 text-blue-700"
+                : "text-slate-500 hover:text-slate-800"
           }`}
         >
           Video
@@ -188,7 +192,9 @@ const Navbar = ({ activeTab, setActiveTab }) => (
           className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
             activeTab === "docs"
               ? "bg-slate-100 text-blue-600"
-              : "text-slate-500 hover:text-slate-800"
+              : guidedTab === "docs"
+                ? "bg-blue-100 text-blue-700"
+                : "text-slate-500 hover:text-slate-800"
           }`}
         >
           Docs
@@ -203,6 +209,7 @@ const HomeView = ({
   onGetStarted,
   telemetryStartSignal,
   telemetryAutoTransmitSignal,
+  onTransmissionScrollComplete,
 }) => (
   <div className="w-full pt-32 pb-20 px-6 md:px-10 lg:px-14 animate-in fade-in duration-500">
     <section className="mb-24">
@@ -280,6 +287,7 @@ const HomeView = ({
       <MeshNetworkTelemetry
         startSignal={telemetryStartSignal}
         autoTransmitSignal={telemetryAutoTransmitSignal}
+        onTransmissionScrollComplete={onTransmissionScrollComplete}
       />
     </section>
 
@@ -530,11 +538,38 @@ const App = () => {
   const [telemetryStartSignal, setTelemetryStartSignal] = useState(0);
   const [telemetryAutoTransmitSignal, setTelemetryAutoTransmitSignal] =
     useState(0);
+  const [guidedTab, setGuidedTab] = useState(null);
+  const guidedTimersRef = useRef([]);
   const rndUpdates = updates.filter((update) => update.type === "R&D");
 
+  const clearGuidedTimers = useCallback(() => {
+    guidedTimersRef.current.forEach((timer) => clearTimeout(timer));
+    guidedTimersRef.current = [];
+  }, []);
+
+  const runGuidedNavSequence = useCallback(() => {
+    clearGuidedTimers();
+    setGuidedTab(null);
+    guidedTimersRef.current.push(
+      setTimeout(() => setGuidedTab("rnd"), 180),
+      setTimeout(() => setGuidedTab("video"), 780),
+      setTimeout(() => setGuidedTab("docs"), 1380),
+      setTimeout(() => setGuidedTab(null), 2380),
+    );
+  }, [clearGuidedTimers]);
+
+  useEffect(() => {
+    return () => {
+      clearGuidedTimers();
+    };
+  }, [clearGuidedTimers]);
+
   const handleGetStarted = () => {
+    setActiveTab("home");
     setTelemetryStartSignal((value) => value + 1);
     setTelemetryAutoTransmitSignal((value) => value + 1);
+    clearGuidedTimers();
+    setGuidedTab(null);
     document
       .getElementById("mesh-network-section")
       ?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -542,7 +577,11 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-100 font-sans antialiased">
-      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Navbar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        guidedTab={guidedTab}
+      />
 
       <main className="relative">
         <div className="fixed top-0 left-0 w-full h-full bg-gradient-to-br from-slate-50 via-white to-blue-50/30 -z-10" />
@@ -552,6 +591,7 @@ const App = () => {
             onGetStarted={handleGetStarted}
             telemetryStartSignal={telemetryStartSignal}
             telemetryAutoTransmitSignal={telemetryAutoTransmitSignal}
+            onTransmissionScrollComplete={runGuidedNavSequence}
           />
         ) : activeTab === "video" ? (
           <VideoView />
@@ -570,6 +610,7 @@ const App = () => {
             onGetStarted={handleGetStarted}
             telemetryStartSignal={telemetryStartSignal}
             telemetryAutoTransmitSignal={telemetryAutoTransmitSignal}
+            onTransmissionScrollComplete={runGuidedNavSequence}
           />
         )}
       </main>

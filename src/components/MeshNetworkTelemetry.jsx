@@ -25,12 +25,15 @@ const createNodes = (width, height, tileWidth, isMobile) => {
   const count = 5;
   const horizontalStep = (endX - startX) / (count - 1);
   const yAmplitude = Math.max(24, Math.min(40, height * 0.06));
+  const tileHeight = tileWidth * 1.04;
 
   const mobileX = width * 0.5;
-  const mobileStartY = Math.max(120, height * 0.14);
-  const mobileEndY = Math.min(height * 0.66, height - 300);
-  const mobileStep = (mobileEndY - mobileStartY) / (count - 1);
-  const mobileStagger = Math.min(28, width * 0.08);
+  const mobileBottomLimit = Math.min(height * 0.72, height - 250);
+  const rawMobileStep = (mobileBottomLimit - 110) / (count - 1);
+  const mobileStep = Math.max(rawMobileStep, tileHeight + 42);
+  const mobileUsedHeight = mobileStep * (count - 1);
+  const mobileStartY = Math.max(90, mobileBottomLimit - mobileUsedHeight);
+  const mobileStagger = Math.min(22, width * 0.06);
 
   const nodes = [];
   for (let i = 0; i < count; i += 1) {
@@ -68,7 +71,7 @@ const createNodes = (width, height, tileWidth, isMobile) => {
         ? mobileStartY + i * mobileStep
         : centerY + (i % 2 === 0 ? -yAmplitude : yAmplitude),
       tileWidth,
-      tileHeight: tileWidth * 1.1,
+      tileHeight,
     });
   }
 
@@ -267,7 +270,11 @@ const toneClass = {
   complete: "text-green-600",
 };
 
-const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
+const MeshNetworkTelemetry = ({
+  startSignal = 0,
+  autoTransmitSignal = 0,
+  onTransmissionScrollComplete,
+}) => {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
@@ -282,6 +289,8 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
   const autoTransmitHandledRef = useRef(0);
   const mobileLayoutRef = useRef(false);
   const lastAutoScrollTopRef = useRef(null);
+  const completionNotifiedRef = useRef(false);
+  const completionTimerRef = useRef(null);
 
   const initialized = startSignal > 0;
   const [status, setStatus] = useState({
@@ -320,7 +329,7 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
       const isMobile = width < MOBILE_BREAKPOINT;
       mobileLayoutRef.current = isMobile;
       const tileWidth = isMobile
-        ? Math.max(92, Math.min(112, width * 0.29))
+        ? Math.max(74, Math.min(96, width * 0.25))
         : Math.max(106, Math.min(148, width / 7));
       nodesRef.current = createNodes(width, height, tileWidth, isMobile);
       connectionsRef.current = [];
@@ -329,6 +338,11 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
       sendHoverRef.current = false;
       sendLockedRef.current = false;
       lastAutoScrollTopRef.current = null;
+      completionNotifiedRef.current = false;
+      if (completionTimerRef.current) {
+        clearTimeout(completionTimerRef.current);
+        completionTimerRef.current = null;
+      }
       setSendLocked(false);
       setStatus({
         tone: "idle",
@@ -394,6 +408,12 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
             text: "HANDSHAKE COMPLETE",
             sub: "Data Delivered - Ack Received (0.4s)",
           });
+          if (!completionNotifiedRef.current && onTransmissionScrollComplete) {
+            completionNotifiedRef.current = true;
+            completionTimerRef.current = setTimeout(() => {
+              onTransmissionScrollComplete();
+            }, 350);
+          }
         }
       }
     };
@@ -443,10 +463,14 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
     animationRef.current = requestAnimationFrame(render);
 
     return () => {
+      if (completionTimerRef.current) {
+        clearTimeout(completionTimerRef.current);
+        completionTimerRef.current = null;
+      }
       observer.disconnect();
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [initialized]);
+  }, [initialized, onTransmissionScrollComplete]);
 
   const beginTransmission = useCallback(() => {
     if (
@@ -504,6 +528,11 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
     sendHoverRef.current = false;
     sendLockedRef.current = false;
     lastAutoScrollTopRef.current = null;
+    completionNotifiedRef.current = false;
+    if (completionTimerRef.current) {
+      clearTimeout(completionTimerRef.current);
+      completionTimerRef.current = null;
+    }
     setSendLocked(false);
     setStatus({
       tone: "idle",
@@ -563,7 +592,7 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
 
       <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-end p-4 md:p-8">
         <div className="flex flex-col xl:flex-row items-stretch xl:items-end justify-center gap-4 md:gap-6">
-          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-4 shadow-md w-full xl:w-60">
+          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-3 shadow-md w-full xl:w-52">
             <h3 className="font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2 flex items-center gap-2">
               <span className="w-2 h-4 bg-blue-500 rounded-full" />
               Node Types
@@ -590,7 +619,7 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
             </div>
           </div>
 
-          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-4 shadow-md w-full xl:min-w-[340px]">
+          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-3 shadow-md w-full xl:min-w-[300px]">
             <div className="text-center w-full">
               <div
                 className={`${toneClass[status.tone]} font-mono text-xs font-black uppercase tracking-[0.2em]`}
