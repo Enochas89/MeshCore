@@ -47,7 +47,7 @@ const createNodes = (width, height, tileWidth) => {
         : [
             { label: "SOLAR", value: "4.1V", color: "#f59e0b" },
             { label: "ELEV", value: elev, color: "#3b82f6" },
-            { label: "TEMP", value: "22°C", color: "#475569" },
+            { label: "TEMP", value: "22 C", color: "#475569" },
           ];
 
     nodes.push({
@@ -66,7 +66,14 @@ const createNodes = (width, height, tileWidth) => {
 
 const drawCompanion = (ctx, x, y, time, scale) => {
   ctx.fillStyle = "#334155";
-  drawRoundedRect(ctx, x - 20 * scale, y - 35 * scale, 40 * scale, 60 * scale, 6 * scale);
+  drawRoundedRect(
+    ctx,
+    x - 20 * scale,
+    y - 35 * scale,
+    40 * scale,
+    60 * scale,
+    6 * scale,
+  );
   ctx.fill();
 
   ctx.fillStyle = "#0f172a";
@@ -101,7 +108,14 @@ const drawRepeater = (ctx, x, y, time, scale) => {
   ctx.fillStyle = "#f1f5f9";
   ctx.strokeStyle = "#cbd5e1";
   ctx.lineWidth = 1 * scale;
-  drawRoundedRect(ctx, x - 15 * scale, y - 20 * scale, 30 * scale, 40 * scale, 3 * scale);
+  drawRoundedRect(
+    ctx,
+    x - 15 * scale,
+    y - 20 * scale,
+    30 * scale,
+    40 * scale,
+    3 * scale,
+  );
   ctx.fill();
   ctx.stroke();
 
@@ -121,7 +135,13 @@ const drawRepeater = (ctx, x, y, time, scale) => {
   ctx.fill();
 };
 
-const drawNode = (ctx, node, time) => {
+const drawNode = (ctx, node, time, options = {}) => {
+  const {
+    showSendButton = false,
+    sendDisabled = false,
+    sendHover = false,
+    sendHotspotRef,
+  } = options;
   const tileWidth = node.tileWidth;
   const tileHeight = node.tileHeight;
   const yOffset = -20;
@@ -132,7 +152,14 @@ const drawNode = (ctx, node, time) => {
   ctx.strokeStyle = "#e2e8f0";
   ctx.lineWidth = 1;
   ctx.fillStyle = "#ffffff";
-  drawRoundedRect(ctx, node.x - tileWidth / 2, node.y - tileHeight / 2, tileWidth, tileHeight, 16);
+  drawRoundedRect(
+    ctx,
+    node.x - tileWidth / 2,
+    node.y - tileHeight / 2,
+    tileWidth,
+    tileHeight,
+    16,
+  );
   ctx.fill();
   ctx.stroke();
   ctx.shadowBlur = 0;
@@ -168,6 +195,32 @@ const drawNode = (ctx, node, time) => {
     ctx.textAlign = "right";
     ctx.fillText(setting.value, right, rowY);
   });
+
+  if (showSendButton) {
+    const btnWidth = tileWidth - 28;
+    const btnHeight = 24;
+    const btnX = node.x - btnWidth / 2;
+    const btnY = node.y + tileHeight / 2 - btnHeight - 10;
+
+    if (sendHotspotRef) {
+      sendHotspotRef.current = {
+        x: btnX,
+        y: btnY,
+        width: btnWidth,
+        height: btnHeight,
+        enabled: !sendDisabled,
+      };
+    }
+
+    ctx.fillStyle = sendDisabled ? "#cbd5e1" : sendHover ? "#1d4ed8" : "#2563eb";
+    drawRoundedRect(ctx, btnX, btnY, btnWidth, btnHeight, 6);
+    ctx.fill();
+
+    ctx.fillStyle = sendDisabled ? "#64748b" : "#ffffff";
+    ctx.textAlign = "center";
+    ctx.font = "700 10px Inter, system-ui, sans-serif";
+    ctx.fillText("SEND DATA", node.x, btnY + 16);
+  }
 };
 
 const drawConnection = (ctx, line, time) => {
@@ -212,14 +265,21 @@ const MeshNetworkTelemetry = () => {
   const nodesRef = useRef([]);
   const connectionsRef = useRef([]);
   const transmissionStepRef = useRef(-1);
+  const sendHotspotRef = useRef(null);
+  const sendHoverRef = useRef(false);
+  const sendLockedRef = useRef(false);
 
   const [initialized, setInitialized] = useState(false);
   const [status, setStatus] = useState({
     tone: "idle",
     text: "NETWORK IDLE",
-    sub: "All Tiles Verified - v2.4.18 Firmware",
+    sub: "Click SEND on SENDER_NODE - v2.4.18 Firmware",
   });
   const [sendLocked, setSendLocked] = useState(false);
+
+  useEffect(() => {
+    sendLockedRef.current = sendLocked;
+  }, [sendLocked]);
 
   useEffect(() => {
     if (!initialized) return undefined;
@@ -247,16 +307,20 @@ const MeshNetworkTelemetry = () => {
       nodesRef.current = createNodes(width, height, tileWidth);
       connectionsRef.current = [];
       transmissionStepRef.current = -1;
+      sendHotspotRef.current = null;
+      sendHoverRef.current = false;
+      sendLockedRef.current = false;
       setSendLocked(false);
       setStatus({
         tone: "idle",
         text: "NETWORK IDLE",
-        sub: "All Tiles Verified - v2.4.18 Firmware",
+        sub: "Click SEND on SENDER_NODE - v2.4.18 Firmware",
       });
     };
 
     const updateTransmission = () => {
       if (transmissionStepRef.current === -1) return;
+
       const nodes = nodesRef.current;
       const lines = connectionsRef.current;
 
@@ -278,9 +342,7 @@ const MeshNetworkTelemetry = () => {
 
       if (currentLine.progress < 1) {
         currentLine.progress = Math.min(1, currentLine.progress + 0.02);
-        if (currentLine.progress === 1) {
-          currentLine.complete = true;
-        }
+        if (currentLine.progress === 1) currentLine.complete = true;
       }
 
       if (currentLine.complete) {
@@ -318,9 +380,19 @@ const MeshNetworkTelemetry = () => {
       }
 
       updateTransmission();
-      nodesRef.current.forEach((node) => drawNode(ctx, node, timeRef.current));
-      connectionsRef.current.forEach((line) => drawConnection(ctx, line, timeRef.current));
+      sendHotspotRef.current = null;
 
+      nodesRef.current.forEach((node, index) => {
+        drawNode(ctx, node, timeRef.current, {
+          showSendButton: index === 0,
+          sendDisabled:
+            sendLockedRef.current || transmissionStepRef.current !== -1,
+          sendHover: index === 0 ? sendHoverRef.current : false,
+          sendHotspotRef,
+        });
+      });
+
+      connectionsRef.current.forEach((line) => drawConnection(ctx, line, timeRef.current));
       animationRef.current = requestAnimationFrame(render);
     };
 
@@ -336,9 +408,17 @@ const MeshNetworkTelemetry = () => {
   }, [initialized]);
 
   const startTransmission = () => {
-    if (!initialized || sendLocked || transmissionStepRef.current !== -1) return;
+    if (
+      !initialized ||
+      sendLockedRef.current ||
+      transmissionStepRef.current !== -1
+    ) {
+      return;
+    }
+
     connectionsRef.current = [];
     transmissionStepRef.current = 0;
+    sendLockedRef.current = true;
     setSendLocked(true);
     setStatus({
       tone: "active",
@@ -350,12 +430,50 @@ const MeshNetworkTelemetry = () => {
   const resetTransmission = () => {
     connectionsRef.current = [];
     transmissionStepRef.current = -1;
+    sendHoverRef.current = false;
+    sendLockedRef.current = false;
     setSendLocked(false);
     setStatus({
       tone: "idle",
       text: "NETWORK IDLE",
-      sub: "All Tiles Verified - v2.4.18 Firmware",
+      sub: "Click SEND on SENDER_NODE - v2.4.18 Firmware",
     });
+  };
+
+  const isInsideSendButton = (clientX, clientY) => {
+    const hotspot = sendHotspotRef.current;
+    const canvas = canvasRef.current;
+    if (!hotspot || !canvas || !hotspot.enabled) return false;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    return (
+      x >= hotspot.x &&
+      x <= hotspot.x + hotspot.width &&
+      y >= hotspot.y &&
+      y <= hotspot.y + hotspot.height
+    );
+  };
+
+  const handleCanvasClick = (event) => {
+    if (isInsideSendButton(event.clientX, event.clientY)) {
+      startTransmission();
+    }
+  };
+
+  const handleCanvasPointerMove = (event) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const hovering = isInsideSendButton(event.clientX, event.clientY);
+    sendHoverRef.current = hovering;
+    canvas.style.cursor = hovering ? "pointer" : "crosshair";
+  };
+
+  const handleCanvasPointerLeave = () => {
+    const canvas = canvasRef.current;
+    sendHoverRef.current = false;
+    if (canvas) canvas.style.cursor = "crosshair";
   };
 
   return (
@@ -363,7 +481,13 @@ const MeshNetworkTelemetry = () => {
       ref={containerRef}
       className="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 shadow-sm h-[600px] md:h-[640px]"
     >
-      <canvas ref={canvasRef} className="absolute inset-0 block h-full w-full" />
+      <canvas
+        ref={canvasRef}
+        onClick={handleCanvasClick}
+        onPointerMove={handleCanvasPointerMove}
+        onPointerLeave={handleCanvasPointerLeave}
+        className="absolute inset-0 block h-full w-full cursor-crosshair"
+      />
 
       {!initialized ? (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-50/95">
@@ -423,27 +547,21 @@ const MeshNetworkTelemetry = () => {
               </div>
             </div>
 
-            <div className="flex gap-2 w-full mt-3">
-              <button
-                type="button"
-                onClick={startTransmission}
-                disabled={sendLocked}
-                className="flex-1 bg-slate-900 hover:bg-slate-800 text-white disabled:bg-slate-200 disabled:text-slate-400 py-3.5 rounded-lg font-bold transition-all shadow-lg active:scale-95"
-              >
-                TRANSMIT SECURE DATA
-              </button>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                Send control moved to first tile
+              </div>
               <button
                 type="button"
                 onClick={resetTransmission}
-                className="bg-white hover:bg-slate-50 px-5 rounded-lg border border-slate-200 text-slate-500 transition-colors"
+                className="bg-white hover:bg-slate-50 px-4 py-2 rounded-lg border border-slate-200 text-slate-500 transition-colors text-xs font-bold"
               >
-                ↺
+                RESET PATH
               </button>
             </div>
           </div>
         </div>
       </div>
-
     </div>
   );
 };
