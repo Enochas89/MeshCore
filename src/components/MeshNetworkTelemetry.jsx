@@ -590,14 +590,14 @@ const MeshNetworkTelemetry = ({
         className="absolute inset-0 block h-full w-full cursor-crosshair"
       />
 
-      <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-end p-4 md:p-8">
-        <div className="flex flex-col xl:flex-row items-stretch xl:items-end justify-center gap-4 md:gap-6">
-          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-3 shadow-md w-full xl:w-52">
+      <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-end p-3 md:p-8">
+        <div className="flex flex-col xl:flex-row items-center xl:items-end justify-center gap-3 md:gap-6">
+          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-2.5 shadow-md w-[82%] max-w-[220px] xl:w-52">
             <h3 className="font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2 flex items-center gap-2">
               <span className="w-2 h-4 bg-blue-500 rounded-full" />
               Node Types
             </h3>
-            <div className="space-y-2 text-sm">
+            <div className="space-y-1.5 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-bold text-slate-900 text-xs">Companion</div>
@@ -619,7 +619,7 @@ const MeshNetworkTelemetry = ({
             </div>
           </div>
 
-          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-3 shadow-md w-full xl:min-w-[300px]">
+          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-2.5 shadow-md w-[92%] max-w-[360px] xl:min-w-[300px]">
             <div className="text-center w-full">
               <div
                 className={`${toneClass[status.tone]} font-mono text-xs font-black uppercase tracking-[0.2em]`}
@@ -631,14 +631,14 @@ const MeshNetworkTelemetry = ({
               </div>
             </div>
 
-            <div className="mt-2 flex items-center justify-between gap-3">
-              <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+            <div className="mt-1.5 flex items-center justify-between gap-2">
+              <div className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">
                 Send control moved to first tile
               </div>
               <button
                 type="button"
                 onClick={resetTransmission}
-                className="bg-white hover:bg-slate-50 px-4 py-2 rounded-lg border border-slate-200 text-slate-500 transition-colors text-xs font-bold"
+                className="bg-white hover:bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 transition-colors text-[11px] font-bold"
               >
                 RESET PATH
               </button>

@@ -239,16 +239,6 @@ const HomeView = ({
     </section>
 
     <section className="mb-16 rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm">
-      <div className="mb-6">
-        <h2 className="text-xl md:text-2xl font-bold text-slate-900">
-          Basic MeshCore Device Setup Guide
-        </h2>
-        <p className="text-slate-500 text-sm mt-2 max-w-3xl">
-          Universal quick-start flow that roughly covers most MeshCore-compatible
-          devices.
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-3">
           {basicSetupSteps.map((item) => (
