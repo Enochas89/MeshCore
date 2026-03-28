@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const GRID_SPACING = 60;
+const MOBILE_BREAKPOINT = 768;
 
 const drawRoundedRect = (ctx, x, y, width, height, radius) => {
   const r = Math.min(radius, width / 2, height / 2);
@@ -17,13 +18,18 @@ const drawRoundedRect = (ctx, x, y, width, height, radius) => {
   ctx.closePath();
 };
 
-const createNodes = (width, height, tileWidth) => {
+const createNodes = (width, height, tileWidth, isMobile) => {
   const centerY = height * 0.42;
   const startX = width * 0.12;
   const endX = width * 0.88;
   const count = 5;
-  const step = (endX - startX) / (count - 1);
+  const horizontalStep = (endX - startX) / (count - 1);
   const yAmplitude = Math.max(24, Math.min(40, height * 0.06));
+
+  const mobileX = width * 0.5;
+  const mobileStartY = Math.max(120, height * 0.14);
+  const mobileEndY = Math.min(height * 0.66, height - 300);
+  const mobileStep = (mobileEndY - mobileStartY) / (count - 1);
 
   const nodes = [];
   for (let i = 0; i < count; i += 1) {
@@ -54,8 +60,10 @@ const createNodes = (width, height, tileWidth) => {
       id,
       type,
       settings,
-      x: startX + i * step,
-      y: centerY + (i % 2 === 0 ? -yAmplitude : yAmplitude),
+      x: isMobile ? mobileX : startX + i * horizontalStep,
+      y: isMobile
+        ? mobileStartY + i * mobileStep
+        : centerY + (i % 2 === 0 ? -yAmplitude : yAmplitude),
       tileWidth,
       tileHeight: tileWidth * 1.18,
     });
@@ -256,7 +264,7 @@ const toneClass = {
   complete: "text-green-600",
 };
 
-const MeshNetworkTelemetry = ({ startSignal = 0 }) => {
+const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
@@ -268,6 +276,7 @@ const MeshNetworkTelemetry = ({ startSignal = 0 }) => {
   const sendHotspotRef = useRef(null);
   const sendHoverRef = useRef(false);
   const sendLockedRef = useRef(false);
+  const autoTransmitHandledRef = useRef(0);
 
   const initialized = startSignal > 0;
   const [status, setStatus] = useState({
@@ -303,8 +312,11 @@ const MeshNetworkTelemetry = ({ startSignal = 0 }) => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       boundsRef.current = { width, height };
-      const tileWidth = Math.max(120, Math.min(180, width / 6));
-      nodesRef.current = createNodes(width, height, tileWidth);
+      const isMobile = width < MOBILE_BREAKPOINT;
+      const tileWidth = isMobile
+        ? Math.max(130, Math.min(160, width * 0.42))
+        : Math.max(120, Math.min(180, width / 6));
+      nodesRef.current = createNodes(width, height, tileWidth, isMobile);
       connectionsRef.current = [];
       transmissionStepRef.current = -1;
       sendHotspotRef.current = null;
@@ -407,7 +419,7 @@ const MeshNetworkTelemetry = ({ startSignal = 0 }) => {
     };
   }, [initialized]);
 
-  const startTransmission = () => {
+  const beginTransmission = useCallback(() => {
     if (
       !initialized ||
       sendLockedRef.current ||
@@ -425,7 +437,24 @@ const MeshNetworkTelemetry = ({ startSignal = 0 }) => {
       text: "PATHFINDING...",
       sub: "Establishing secure relay path",
     });
-  };
+  }, [initialized]);
+
+  useEffect(() => {
+    if (
+      !initialized ||
+      autoTransmitSignal === 0 ||
+      autoTransmitSignal === autoTransmitHandledRef.current
+    ) {
+      return undefined;
+    }
+
+    autoTransmitHandledRef.current = autoTransmitSignal;
+    const frame = requestAnimationFrame(() => {
+      beginTransmission();
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [autoTransmitSignal, initialized, beginTransmission]);
 
   const resetTransmission = () => {
     connectionsRef.current = [];
@@ -458,7 +487,7 @@ const MeshNetworkTelemetry = ({ startSignal = 0 }) => {
 
   const handleCanvasClick = (event) => {
     if (isInsideSendButton(event.clientX, event.clientY)) {
-      startTransmission();
+      beginTransmission();
     }
   };
 
@@ -479,7 +508,7 @@ const MeshNetworkTelemetry = ({ startSignal = 0 }) => {
   return (
     <div
       ref={containerRef}
-      className="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 shadow-sm h-[600px] md:h-[640px]"
+      className="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 shadow-sm h-[980px] md:h-[640px]"
     >
       <canvas
         ref={canvasRef}

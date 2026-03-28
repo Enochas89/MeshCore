@@ -74,6 +74,41 @@ const features = [
   },
 ];
 
+const basicSetupSteps = [
+  {
+    step: "1. Power And Cable Check",
+    detail:
+      "Use a stable USB data cable and confirm the board powers on before flashing.",
+  },
+  {
+    step: "2. Flash Firmware",
+    detail:
+      "Flash the latest MeshCore build for your board family, then reboot the device once.",
+  },
+  {
+    step: "3. Pair Companion",
+    detail:
+      "Connect from your phone or laptop companion app and set a unique node name.",
+  },
+  {
+    step: "4. Set Radio Profile",
+    detail:
+      "Configure region, channel, and power settings to match nearby team nodes.",
+  },
+  {
+    step: "5. Send Test Packet",
+    detail:
+      "Transmit a short message to validate route discovery and receive acknowledgment.",
+  },
+];
+
+const basicDeviceProfiles = [
+  "ESP32 + SX1262 handheld nodes",
+  "Heltec and LilyGo style dev boards",
+  "Repeater towers with external antennas",
+  "Battery or solar powered field nodes",
+];
+
 const documents = [
   {
     id: "intro-guide",
@@ -157,7 +192,12 @@ const Navbar = ({ activeTab, setActiveTab }) => (
   </nav>
 );
 
-const HomeView = ({ featureList, onGetStarted, telemetryStartSignal }) => (
+const HomeView = ({
+  featureList,
+  onGetStarted,
+  telemetryStartSignal,
+  telemetryAutoTransmitSignal,
+}) => (
   <div className="w-full pt-32 pb-20 px-6 md:px-10 lg:px-14 animate-in fade-in duration-500">
     <section className="mb-24">
       <h1 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6 tracking-tight leading-tight">
@@ -185,8 +225,56 @@ const HomeView = ({ featureList, onGetStarted, telemetryStartSignal }) => (
       </div>
     </section>
 
-    <section id="mesh-network-section" className="mb-16">
-      <MeshNetworkTelemetry startSignal={telemetryStartSignal} />
+    <section className="mb-16 rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm">
+      <div className="mb-6">
+        <h2 className="text-xl md:text-2xl font-bold text-slate-900">
+          Basic MeshCore Device Setup Guide
+        </h2>
+        <p className="text-slate-500 text-sm mt-2 max-w-3xl">
+          Universal quick-start flow that roughly covers most MeshCore-compatible
+          devices.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-3">
+          {basicSetupSteps.map((item) => (
+            <div
+              key={item.step}
+              className="rounded-xl border border-slate-100 bg-slate-50 p-4"
+            >
+              <h3 className="text-sm font-bold text-slate-900">{item.step}</h3>
+              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                {item.detail}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-xl border border-slate-100 bg-slate-50 p-5">
+          <h3 className="text-sm font-bold text-slate-900 mb-3 uppercase tracking-wider">
+            Device Coverage
+          </h3>
+          <ul className="space-y-2">
+            {basicDeviceProfiles.map((profile) => (
+              <li key={profile} className="text-xs text-slate-600 flex gap-2">
+                <span className="text-blue-600 font-black">+</span>
+                <span>{profile}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-[11px] text-slate-500 mt-4">
+            For board-specific pin maps and advanced tuning, use the Docs tab.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="mesh-network-section" className="mb-16 scroll-mt-28">
+      <MeshNetworkTelemetry
+        startSignal={telemetryStartSignal}
+        autoTransmitSignal={telemetryAutoTransmitSignal}
+      />
     </section>
 
     <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -401,13 +489,16 @@ const DocumentationView = ({ docs }) => (
 const App = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [telemetryStartSignal, setTelemetryStartSignal] = useState(0);
+  const [telemetryAutoTransmitSignal, setTelemetryAutoTransmitSignal] =
+    useState(0);
   const rndUpdates = updates.filter((update) => update.type === "R&D");
 
   const handleGetStarted = () => {
     setTelemetryStartSignal((value) => value + 1);
+    setTelemetryAutoTransmitSignal((value) => value + 1);
     document
       .getElementById("mesh-network-section")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   return (
@@ -421,6 +512,7 @@ const App = () => {
             featureList={features}
             onGetStarted={handleGetStarted}
             telemetryStartSignal={telemetryStartSignal}
+            telemetryAutoTransmitSignal={telemetryAutoTransmitSignal}
           />
         ) : activeTab === "docs" ? (
           <DocumentationView docs={documents} />
@@ -432,7 +524,12 @@ const App = () => {
             researchDocs={rndDocuments}
           />
         ) : (
-          <HomeView featureList={features} />
+          <HomeView
+            featureList={features}
+            onGetStarted={handleGetStarted}
+            telemetryStartSignal={telemetryStartSignal}
+            telemetryAutoTransmitSignal={telemetryAutoTransmitSignal}
+          />
         )}
       </main>
 
