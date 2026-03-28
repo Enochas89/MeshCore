@@ -25,15 +25,15 @@ const createNodes = (width, height, tileWidth, isMobile) => {
   const count = 5;
   const horizontalStep = (endX - startX) / (count - 1);
   const yAmplitude = Math.max(24, Math.min(40, height * 0.06));
-  const tileHeight = tileWidth * 1.04;
+  const tileHeight = isMobile ? tileWidth * 1.52 : tileWidth * 1.04;
 
   const mobileX = width * 0.5;
-  const mobileBottomLimit = Math.min(height * 0.72, height - 250);
-  const rawMobileStep = (mobileBottomLimit - 110) / (count - 1);
-  const mobileStep = Math.max(rawMobileStep, tileHeight + 42);
+  const mobileBottomLimit = Math.min(height * 0.56, height - 360);
+  const rawMobileStep = (mobileBottomLimit - 180) / (count - 1);
+  const mobileStep = Math.max(rawMobileStep, tileHeight + 38);
   const mobileUsedHeight = mobileStep * (count - 1);
-  const mobileStartY = Math.max(90, mobileBottomLimit - mobileUsedHeight);
-  const mobileStagger = Math.min(22, width * 0.06);
+  const mobileStartY = Math.max(170, mobileBottomLimit - mobileUsedHeight);
+  const mobileStagger = Math.min(16, width * 0.045);
 
   const nodes = [];
   for (let i = 0; i < count; i += 1) {
@@ -72,6 +72,7 @@ const createNodes = (width, height, tileWidth, isMobile) => {
         : centerY + (i % 2 === 0 ? -yAmplitude : yAmplitude),
       tileWidth,
       tileHeight,
+      isMobile,
     });
   }
 
@@ -158,6 +159,7 @@ const drawNode = (ctx, node, time, options = {}) => {
   } = options;
   const tileWidth = node.tileWidth;
   const tileHeight = node.tileHeight;
+  const isMobile = node.isMobile;
   const yOffset = -20;
   const iconScale = tileWidth / 180;
 
@@ -184,37 +186,45 @@ const drawNode = (ctx, node, time, options = {}) => {
     drawRepeater(ctx, node.x, node.y + yOffset, time, iconScale);
   }
 
-  const left = node.x - tileWidth / 2 + 14;
-  const right = node.x + tileWidth / 2 - 14;
-  const startY = node.y + 30;
+  const top = node.y - tileHeight / 2;
+  const left = node.x - tileWidth / 2 + 10;
+  const contentWidth = tileWidth - 20;
+  const valueOffset = isMobile ? 32 : 48;
+  const titleY = isMobile ? top + 78 : node.y + 30;
+  const rowStartY = titleY + (isMobile ? 13 : 18);
+  const rowGap = isMobile ? 11 : 14;
 
   ctx.textAlign = "left";
   ctx.fillStyle = "#1e293b";
-  ctx.font = "700 11px Inter, system-ui, sans-serif";
-  ctx.fillText(node.id, left, startY);
+  ctx.font = isMobile
+    ? "700 8px Inter, system-ui, sans-serif"
+    : "700 11px Inter, system-ui, sans-serif";
+  ctx.fillText(node.id, left, titleY);
 
   ctx.strokeStyle = "#f1f5f9";
   ctx.beginPath();
-  ctx.moveTo(left, startY + 6);
-  ctx.lineTo(right, startY + 6);
+  ctx.moveTo(left, titleY + 5);
+  ctx.lineTo(left + contentWidth, titleY + 5);
   ctx.stroke();
 
-  ctx.font = "600 9px Inter, system-ui, sans-serif";
+  ctx.font = isMobile
+    ? "600 8px Inter, system-ui, sans-serif"
+    : "600 9px Inter, system-ui, sans-serif";
   node.settings.forEach((setting, index) => {
-    const rowY = startY + 18 + index * 14;
+    const rowY = rowStartY + index * rowGap;
     ctx.fillStyle = "#94a3b8";
     ctx.textAlign = "left";
     ctx.fillText(setting.label, left, rowY);
     ctx.fillStyle = setting.color;
     ctx.textAlign = "left";
-    ctx.fillText(setting.value, left + 48, rowY);
+    ctx.fillText(setting.value, left + valueOffset, rowY);
   });
 
   if (showSendButton) {
-    const btnWidth = tileWidth - 28;
-    const btnHeight = 24;
+    const btnWidth = tileWidth - (isMobile ? 18 : 28);
+    const btnHeight = isMobile ? 20 : 24;
     const btnX = node.x - btnWidth / 2;
-    const btnY = node.y + tileHeight / 2 + 8;
+    const btnY = node.y + tileHeight / 2 + (isMobile ? 4 : 8);
 
     if (sendHotspotRef) {
       sendHotspotRef.current = {
@@ -232,13 +242,16 @@ const drawNode = (ctx, node, time, options = {}) => {
 
     ctx.fillStyle = sendDisabled ? "#64748b" : "#ffffff";
     ctx.textAlign = "center";
-    ctx.font = "700 10px Inter, system-ui, sans-serif";
-    ctx.fillText("SEND DATA", node.x, btnY + 16);
+    ctx.font = isMobile
+      ? "700 8px Inter, system-ui, sans-serif"
+      : "700 10px Inter, system-ui, sans-serif";
+    ctx.fillText("SEND DATA", node.x, btnY + (isMobile ? 13 : 16));
   }
 };
 
 const drawConnection = (ctx, line, time) => {
   const yOffset = -20;
+  const isMobile = line.from.isMobile;
   const startX = line.from.x;
   const startY = line.from.y + yOffset;
   const endX = line.to.x;
@@ -247,15 +260,15 @@ const drawConnection = (ctx, line, time) => {
   const currentY = startY + (endY - startY) * line.progress;
 
   ctx.strokeStyle = line.color;
-  ctx.lineWidth = 6;
+  ctx.lineWidth = isMobile ? 4 : 6;
   ctx.lineCap = "round";
   ctx.beginPath();
   ctx.moveTo(startX, startY);
   ctx.lineTo(currentX, currentY);
   ctx.stroke();
 
-  const glowSize = 5 + Math.sin(time * 0.2) * 3;
-  ctx.shadowBlur = 20;
+  const glowSize = (isMobile ? 4 : 5) + Math.sin(time * 0.2) * (isMobile ? 2 : 3);
+  ctx.shadowBlur = isMobile ? 14 : 20;
   ctx.shadowColor = line.color;
   ctx.fillStyle = "#ffffff";
   ctx.beginPath();
@@ -592,7 +605,7 @@ const MeshNetworkTelemetry = ({
 
       <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-end p-3 md:p-8">
         <div className="flex flex-col xl:flex-row items-center xl:items-end justify-center gap-3 md:gap-6">
-          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-2.5 shadow-md w-[82%] max-w-[220px] xl:w-52">
+          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-2 shadow-md w-[76%] max-w-[200px] xl:w-52">
             <h3 className="font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2 flex items-center gap-2">
               <span className="w-2 h-4 bg-blue-500 rounded-full" />
               Node Types
@@ -619,7 +632,7 @@ const MeshNetworkTelemetry = ({
             </div>
           </div>
 
-          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-2.5 shadow-md w-[92%] max-w-[360px] xl:min-w-[300px]">
+          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-2 shadow-md w-[88%] max-w-[320px] xl:min-w-[300px]">
             <div className="text-center w-full">
               <div
                 className={`${toneClass[status.tone]} font-mono text-xs font-black uppercase tracking-[0.2em]`}
