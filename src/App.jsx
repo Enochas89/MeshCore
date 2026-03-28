@@ -88,41 +88,6 @@ const features = [
   },
 ];
 
-const basicSetupSteps = [
-  {
-    step: "1. Power And Cable Check",
-    detail:
-      "Use a stable USB data cable and confirm the board powers on before flashing.",
-  },
-  {
-    step: "2. Flash Firmware",
-    detail:
-      "Flash the latest MeshCore build for your board family, then reboot the device once.",
-  },
-  {
-    step: "3. Pair Companion",
-    detail:
-      "Connect from your phone or laptop companion app and set a unique node name.",
-  },
-  {
-    step: "4. Set Radio Profile",
-    detail:
-      "Configure region, channel, and power settings to match nearby team nodes.",
-  },
-  {
-    step: "5. Send Test Packet",
-    detail:
-      "Transmit a short message to validate route discovery and receive acknowledgment.",
-  },
-];
-
-const basicDeviceProfiles = [
-  "ESP32 + SX1262 handheld nodes",
-  "Heltec and LilyGo style dev boards",
-  "Repeater towers with external antennas",
-  "Battery or solar powered field nodes",
-];
-
 const documents = [
   {
     id: "intro-guide",
@@ -249,41 +214,6 @@ const HomeView = ({
         >
           <GitBranch size={14} /> GitHub
         </a>
-      </div>
-    </section>
-
-    <section className="mb-16 rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-3">
-          {basicSetupSteps.map((item) => (
-            <div
-              key={item.step}
-              className="rounded-xl border border-slate-100 bg-slate-50 p-4"
-            >
-              <h3 className="text-sm font-bold text-slate-900">{item.step}</h3>
-              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                {item.detail}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <div className="rounded-xl border border-slate-100 bg-slate-50 p-5">
-          <h3 className="text-sm font-bold text-slate-900 mb-3 uppercase tracking-wider">
-            Device Coverage
-          </h3>
-          <ul className="space-y-2">
-            {basicDeviceProfiles.map((profile) => (
-              <li key={profile} className="text-xs text-slate-600 flex gap-2">
-                <span className="text-blue-600 font-black">+</span>
-                <span>{profile}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="text-[11px] text-slate-500 mt-4">
-            For board-specific pin maps and advanced tuning, use the Docs tab.
-          </p>
-        </div>
       </div>
     </section>
 

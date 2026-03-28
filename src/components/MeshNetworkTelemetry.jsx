@@ -28,11 +28,11 @@ const createNodes = (width, height, tileWidth, isMobile) => {
   const tileHeight = isMobile ? tileWidth * 1.52 : tileWidth * 1.04;
 
   const mobileX = width * 0.5;
-  const mobileBottomLimit = Math.min(height * 0.56, height - 360);
+  const mobileBottomLimit = Math.min(height * 0.48, height - 420);
   const rawMobileStep = (mobileBottomLimit - 180) / (count - 1);
   const mobileStep = Math.max(rawMobileStep, tileHeight + 38);
   const mobileUsedHeight = mobileStep * (count - 1);
-  const mobileStartY = Math.max(170, mobileBottomLimit - mobileUsedHeight);
+  const mobileStartY = Math.max(145, mobileBottomLimit - mobileUsedHeight);
   const mobileStagger = Math.min(16, width * 0.045);
 
   const nodes = [];
@@ -603,55 +603,55 @@ const MeshNetworkTelemetry = ({
         className="absolute inset-0 block h-full w-full cursor-crosshair"
       />
 
-      <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-end p-3 md:p-8">
-        <div className="flex flex-col xl:flex-row items-center xl:items-end justify-center gap-3 md:gap-6">
-          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-2 shadow-md w-[76%] max-w-[200px] xl:w-52">
-            <h3 className="font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2 flex items-center gap-2">
-              <span className="w-2 h-4 bg-blue-500 rounded-full" />
+      <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-end p-2 md:p-8">
+        <div className="flex flex-row items-end justify-between gap-2 md:gap-6">
+          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-xl md:rounded-2xl p-2 shadow-md w-[40%] max-w-[152px] md:w-auto md:max-w-none md:p-3 xl:w-52">
+            <h3 className="font-bold text-slate-800 text-[11px] md:text-base mb-1.5 md:mb-3 md:border-b md:border-slate-100 md:pb-2 flex items-center gap-1.5 md:gap-2">
+              <span className="w-1.5 h-3.5 md:w-2 md:h-4 bg-blue-500 rounded-full" />
               Node Types
             </h3>
-            <div className="space-y-1.5 text-sm">
-              <div className="flex items-center justify-between gap-3">
+            <div className="space-y-1 text-sm">
+              <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="font-bold text-slate-900 text-xs">Companion</div>
-                  <div className="text-slate-500 text-[10px]">Handheld Interface</div>
+                  <div className="font-bold text-slate-900 text-[10px] md:text-xs">Companion</div>
+                  <div className="hidden md:block text-slate-500 text-[10px]">Handheld Interface</div>
                 </div>
-                <div className="w-7 h-7 border border-slate-200 rounded bg-white flex items-center justify-center shrink-0">
-                  <div className="w-2.5 h-4.5 bg-slate-700 rounded-sm" />
+                <div className="w-5 h-5 md:w-7 md:h-7 border border-slate-200 rounded bg-white flex items-center justify-center shrink-0">
+                  <div className="w-2 h-3.5 md:w-2.5 md:h-4.5 bg-slate-700 rounded-sm" />
                 </div>
               </div>
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="font-bold text-slate-900 text-xs">Repeater</div>
-                  <div className="text-slate-500 text-[10px]">Infrastructure</div>
+                  <div className="font-bold text-slate-900 text-[10px] md:text-xs">Repeater</div>
+                  <div className="hidden md:block text-slate-500 text-[10px]">Infrastructure</div>
                 </div>
-                <div className="w-7 h-7 border border-slate-200 rounded bg-white flex items-center justify-center shrink-0">
-                  <div className="w-1 h-4.5 bg-slate-400" />
+                <div className="w-5 h-5 md:w-7 md:h-7 border border-slate-200 rounded bg-white flex items-center justify-center shrink-0">
+                  <div className="w-1 h-3.5 md:h-4.5 bg-slate-400" />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-2 shadow-md w-[88%] max-w-[320px] xl:min-w-[300px]">
+          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-xl md:rounded-2xl p-2 shadow-md w-[58%] max-w-[214px] md:w-auto md:max-w-none md:p-3 xl:min-w-[300px]">
             <div className="text-center w-full">
               <div
-                className={`${toneClass[status.tone]} font-mono text-xs font-black uppercase tracking-[0.2em]`}
+                className={`${toneClass[status.tone]} font-mono text-[10px] md:text-xs font-black uppercase tracking-[0.18em] md:tracking-[0.2em]`}
               >
                 {status.text}
               </div>
-              <div className="text-slate-400 text-[10px] mt-1 uppercase font-bold tracking-wider">
+              <div className="hidden md:block text-slate-400 text-[10px] mt-1 uppercase font-bold tracking-wider">
                 {status.sub}
               </div>
             </div>
 
-            <div className="mt-1.5 flex items-center justify-between gap-2">
-              <div className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">
+            <div className="mt-1.5 flex items-center justify-end md:justify-between gap-2">
+              <div className="hidden md:block text-[9px] text-slate-500 font-bold uppercase tracking-wider">
                 Send control moved to first tile
               </div>
               <button
                 type="button"
                 onClick={resetTransmission}
-                className="bg-white hover:bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 transition-colors text-[11px] font-bold"
+                className="bg-white hover:bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 text-slate-500 transition-colors text-[10px] md:text-[11px] font-bold"
               >
                 RESET PATH
               </button>
