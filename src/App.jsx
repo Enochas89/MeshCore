@@ -15,6 +15,20 @@ import MeshNetworkTelemetry from "./components/MeshNetworkTelemetry";
 
 const updates = [
   {
+    version: "v1.16.0",
+    date: "MAY 2026",
+    type: "R&D",
+    status: "In Progress",
+    description:
+      "Project: App retooling to accommodate Voice over MeshCore transport.",
+    changes: [
+      "Push-to-talk voice workflow integrated into companion UI.",
+      "Voice frame packetization tuned for low-bandwidth mesh links.",
+      "Adaptive jitter buffer and loss concealment for unstable routes.",
+      "Priority routing profile for voice traffic vs standard messages.",
+    ],
+  },
+  {
     version: "v1.15.0",
     date: "APR 2026",
     type: "R&D",
