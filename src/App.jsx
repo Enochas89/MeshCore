@@ -157,7 +157,7 @@ const Navbar = ({ activeTab, setActiveTab }) => (
   </nav>
 );
 
-const HomeView = ({ featureList }) => (
+const HomeView = ({ featureList, onGetStarted, telemetryStartSignal }) => (
   <div className="w-full pt-32 pb-20 px-6 md:px-10 lg:px-14 animate-in fade-in duration-500">
     <section className="mb-24">
       <h1 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6 tracking-tight leading-tight">
@@ -168,7 +168,10 @@ const HomeView = ({ featureList }) => (
         communication designed for dense environments and tactical field use.
       </p>
       <div className="flex gap-3">
-        <button className="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold text-xs hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-200">
+        <button
+          onClick={onGetStarted}
+          className="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold text-xs hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-200"
+        >
           Get Started <ChevronRight size={14} />
         </button>
         <a
@@ -182,8 +185,8 @@ const HomeView = ({ featureList }) => (
       </div>
     </section>
 
-    <section className="mb-16">
-      <MeshNetworkTelemetry />
+    <section id="mesh-network-section" className="mb-16">
+      <MeshNetworkTelemetry startSignal={telemetryStartSignal} />
     </section>
 
     <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -397,7 +400,15 @@ const DocumentationView = ({ docs }) => (
 
 const App = () => {
   const [activeTab, setActiveTab] = useState("home");
+  const [telemetryStartSignal, setTelemetryStartSignal] = useState(0);
   const rndUpdates = updates.filter((update) => update.type === "R&D");
+
+  const handleGetStarted = () => {
+    setTelemetryStartSignal((value) => value + 1);
+    document
+      .getElementById("mesh-network-section")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-100 font-sans antialiased">
@@ -406,7 +417,11 @@ const App = () => {
       <main className="relative">
         <div className="fixed top-0 left-0 w-full h-full bg-gradient-to-br from-slate-50 via-white to-blue-50/30 -z-10" />
         {activeTab === "home" ? (
-          <HomeView featureList={features} />
+          <HomeView
+            featureList={features}
+            onGetStarted={handleGetStarted}
+            telemetryStartSignal={telemetryStartSignal}
+          />
         ) : activeTab === "docs" ? (
           <DocumentationView docs={documents} />
         ) : activeTab === "rnd" ? (

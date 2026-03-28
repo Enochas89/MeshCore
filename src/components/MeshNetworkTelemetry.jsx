@@ -200,7 +200,7 @@ const drawNode = (ctx, node, time, options = {}) => {
     const btnWidth = tileWidth - 28;
     const btnHeight = 24;
     const btnX = node.x - btnWidth / 2;
-    const btnY = node.y + tileHeight / 2 - btnHeight - 10;
+    const btnY = node.y + tileHeight / 2 + 8;
 
     if (sendHotspotRef) {
       sendHotspotRef.current = {
@@ -256,7 +256,7 @@ const toneClass = {
   complete: "text-green-600",
 };
 
-const MeshNetworkTelemetry = () => {
+const MeshNetworkTelemetry = ({ startSignal = 0 }) => {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
@@ -269,7 +269,7 @@ const MeshNetworkTelemetry = () => {
   const sendHoverRef = useRef(false);
   const sendLockedRef = useRef(false);
 
-  const [initialized, setInitialized] = useState(false);
+  const initialized = startSignal > 0;
   const [status, setStatus] = useState({
     tone: "idle",
     text: "NETWORK IDLE",
@@ -488,23 +488,6 @@ const MeshNetworkTelemetry = () => {
         onPointerLeave={handleCanvasPointerLeave}
         className="absolute inset-0 block h-full w-full cursor-crosshair"
       />
-
-      {!initialized ? (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-50/95">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-slate-800 mb-4">
-              Meshcore Node Infrastructure
-            </h2>
-            <button
-              type="button"
-              onClick={() => setInitialized(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-bold text-lg shadow-xl transition-all transform hover:scale-105 active:scale-95"
-            >
-              Initialize Network View
-            </button>
-          </div>
-        </div>
-      ) : null}
 
       <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-end p-4 md:p-8">
         <div className="flex flex-col xl:flex-row items-stretch xl:items-end justify-center gap-4 md:gap-6">
