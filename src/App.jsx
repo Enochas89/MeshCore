@@ -7,11 +7,11 @@ import {
   Network,
   ChevronRight,
   Layers,
-  Activity,
   GitBranch,
   FileText,
   ExternalLink,
 } from "lucide-react";
+import MeshNetworkTelemetry from "./components/MeshNetworkTelemetry";
 
 const updates = [
   {
@@ -160,9 +160,6 @@ const Navbar = ({ activeTab, setActiveTab }) => (
 const HomeView = ({ featureList }) => (
   <div className="w-full pt-32 pb-20 px-6 md:px-10 lg:px-14 animate-in fade-in duration-500">
     <section className="mb-24">
-      <div className="flex items-center gap-2 text-blue-600 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-        <Activity size={12} /> Protocol v1.14
-      </div>
       <h1 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6 tracking-tight leading-tight">
         MeshCore
       </h1>
@@ -183,6 +180,10 @@ const HomeView = ({ featureList }) => (
           <GitBranch size={14} /> GitHub
         </a>
       </div>
+    </section>
+
+    <section className="mb-16">
+      <MeshNetworkTelemetry />
     </section>
 
     <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

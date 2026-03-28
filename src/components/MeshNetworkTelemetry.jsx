@@ -1,0 +1,451 @@
+import { useEffect, useRef, useState } from "react";
+
+const GRID_SPACING = 60;
+
+const drawRoundedRect = (ctx, x, y, width, height, radius) => {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+};
+
+const createNodes = (width, height, tileWidth) => {
+  const centerY = height * 0.42;
+  const startX = width * 0.12;
+  const endX = width * 0.88;
+  const count = 5;
+  const step = (endX - startX) / (count - 1);
+  const yAmplitude = Math.max(24, Math.min(40, height * 0.06));
+
+  const nodes = [];
+  for (let i = 0; i < count; i += 1) {
+    const type = i === 0 || i === count - 1 ? "companion" : "repeater";
+    const id =
+      i === 0 ? "SENDER_NODE" : i === count - 1 ? "RECIP_NODE" : `RPT_TILE_${i}`;
+
+    let elev = "12 ft";
+    if (i === 1) elev = "542 ft";
+    if (i === 2) elev = "1,180 ft";
+    if (i === 3) elev = "625 ft";
+    if (i === 4) elev = "18 ft";
+
+    const settings =
+      type === "companion"
+        ? [
+            { label: "BATT", value: "92%", color: "#22c55e" },
+            { label: "RSSI", value: "-105 dBm", color: "#475569" },
+            { label: "ELEV", value: elev, color: "#475569" },
+          ]
+        : [
+            { label: "SOLAR", value: "4.1V", color: "#f59e0b" },
+            { label: "ELEV", value: elev, color: "#3b82f6" },
+            { label: "TEMP", value: "22°C", color: "#475569" },
+          ];
+
+    nodes.push({
+      id,
+      type,
+      settings,
+      x: startX + i * step,
+      y: centerY + (i % 2 === 0 ? -yAmplitude : yAmplitude),
+      tileWidth,
+      tileHeight: tileWidth * 1.18,
+    });
+  }
+
+  return nodes;
+};
+
+const drawCompanion = (ctx, x, y, time, scale) => {
+  ctx.fillStyle = "#334155";
+  drawRoundedRect(ctx, x - 20 * scale, y - 35 * scale, 40 * scale, 60 * scale, 6 * scale);
+  ctx.fill();
+
+  ctx.fillStyle = "#0f172a";
+  ctx.fillRect(x - 16 * scale, y - 30 * scale, 32 * scale, 24 * scale);
+
+  ctx.fillStyle = "#38bdf8";
+  ctx.fillRect(x - 12 * scale, y - 26 * scale, 14 * scale, 2 * scale);
+  ctx.fillRect(x - 12 * scale, y - 22 * scale, 20 * scale, 2 * scale);
+
+  ctx.strokeStyle = "#1e293b";
+  ctx.lineWidth = 3 * scale;
+  ctx.beginPath();
+  ctx.moveTo(x + 12 * scale, y - 35 * scale);
+  ctx.lineTo(x + 12 * scale, y - 55 * scale);
+  ctx.stroke();
+
+  const pulse = (Math.sin(time * 0.1) + 1) / 2;
+  ctx.fillStyle = `rgba(59, 130, 246, ${0.4 + pulse * 0.6})`;
+  ctx.beginPath();
+  ctx.arc(x - 10 * scale, y + 15 * scale, 2.5 * scale, 0, Math.PI * 2);
+  ctx.fill();
+};
+
+const drawRepeater = (ctx, x, y, time, scale) => {
+  ctx.strokeStyle = "#94a3b8";
+  ctx.lineWidth = 4 * scale;
+  ctx.beginPath();
+  ctx.moveTo(x, y + 40 * scale);
+  ctx.lineTo(x, y - 40 * scale);
+  ctx.stroke();
+
+  ctx.fillStyle = "#f1f5f9";
+  ctx.strokeStyle = "#cbd5e1";
+  ctx.lineWidth = 1 * scale;
+  drawRoundedRect(ctx, x - 15 * scale, y - 20 * scale, 30 * scale, 40 * scale, 3 * scale);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "#1e293b";
+  ctx.beginPath();
+  ctx.moveTo(x - 25 * scale, y - 25 * scale);
+  ctx.lineTo(x - 5 * scale, y - 45 * scale);
+  ctx.lineTo(x + 15 * scale, y - 45 * scale);
+  ctx.lineTo(x - 5 * scale, y - 25 * scale);
+  ctx.closePath();
+  ctx.fill();
+
+  const ledOn = Math.floor(time * 0.05) % 2 === 0;
+  ctx.fillStyle = ledOn ? "#22c55e" : "#064e3b";
+  ctx.beginPath();
+  ctx.arc(x - 8 * scale, y + 10 * scale, 3 * scale, 0, Math.PI * 2);
+  ctx.fill();
+};
+
+const drawNode = (ctx, node, time) => {
+  const tileWidth = node.tileWidth;
+  const tileHeight = node.tileHeight;
+  const yOffset = -20;
+  const iconScale = tileWidth / 180;
+
+  ctx.shadowBlur = 15;
+  ctx.shadowColor = "rgba(0, 0, 0, 0.05)";
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.lineWidth = 1;
+  ctx.fillStyle = "#ffffff";
+  drawRoundedRect(ctx, node.x - tileWidth / 2, node.y - tileHeight / 2, tileWidth, tileHeight, 16);
+  ctx.fill();
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  if (node.type === "companion") {
+    drawCompanion(ctx, node.x, node.y + yOffset, time, iconScale);
+  } else {
+    drawRepeater(ctx, node.x, node.y + yOffset, time, iconScale);
+  }
+
+  const left = node.x - tileWidth / 2 + 14;
+  const right = node.x + tileWidth / 2 - 14;
+  const startY = node.y + 30;
+
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#1e293b";
+  ctx.font = "700 11px Inter, system-ui, sans-serif";
+  ctx.fillText(node.id, left, startY);
+
+  ctx.strokeStyle = "#f1f5f9";
+  ctx.beginPath();
+  ctx.moveTo(left, startY + 6);
+  ctx.lineTo(right, startY + 6);
+  ctx.stroke();
+
+  ctx.font = "600 9px Inter, system-ui, sans-serif";
+  node.settings.forEach((setting, index) => {
+    const rowY = startY + 18 + index * 14;
+    ctx.fillStyle = "#94a3b8";
+    ctx.textAlign = "left";
+    ctx.fillText(setting.label, left, rowY);
+    ctx.fillStyle = setting.color;
+    ctx.textAlign = "right";
+    ctx.fillText(setting.value, right, rowY);
+  });
+};
+
+const drawConnection = (ctx, line, time) => {
+  const yOffset = -20;
+  const startX = line.from.x;
+  const startY = line.from.y + yOffset;
+  const endX = line.to.x;
+  const endY = line.to.y + yOffset;
+  const currentX = startX + (endX - startX) * line.progress;
+  const currentY = startY + (endY - startY) * line.progress;
+
+  ctx.strokeStyle = line.color;
+  ctx.lineWidth = 6;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.lineTo(currentX, currentY);
+  ctx.stroke();
+
+  const glowSize = 5 + Math.sin(time * 0.2) * 3;
+  ctx.shadowBlur = 20;
+  ctx.shadowColor = line.color;
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(currentX, currentY, glowSize, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+};
+
+const toneClass = {
+  idle: "text-blue-600",
+  active: "text-orange-500",
+  complete: "text-green-600",
+};
+
+const MeshNetworkTelemetry = () => {
+  const containerRef = useRef(null);
+  const canvasRef = useRef(null);
+  const animationRef = useRef(null);
+  const timeRef = useRef(0);
+  const boundsRef = useRef({ width: 0, height: 0 });
+  const nodesRef = useRef([]);
+  const connectionsRef = useRef([]);
+  const transmissionStepRef = useRef(-1);
+
+  const [initialized, setInitialized] = useState(false);
+  const [status, setStatus] = useState({
+    tone: "idle",
+    text: "NETWORK IDLE",
+    sub: "All Tiles Verified - v2.4.18 Firmware",
+  });
+  const [sendLocked, setSendLocked] = useState(false);
+
+  useEffect(() => {
+    if (!initialized) return undefined;
+
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return undefined;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return undefined;
+
+    const resizeCanvas = () => {
+      const rect = container.getBoundingClientRect();
+      const width = Math.max(320, rect.width);
+      const height = Math.max(360, rect.height);
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      boundsRef.current = { width, height };
+      const tileWidth = Math.max(120, Math.min(180, width / 6));
+      nodesRef.current = createNodes(width, height, tileWidth);
+      connectionsRef.current = [];
+      transmissionStepRef.current = -1;
+      setSendLocked(false);
+      setStatus({
+        tone: "idle",
+        text: "NETWORK IDLE",
+        sub: "All Tiles Verified - v2.4.18 Firmware",
+      });
+    };
+
+    const updateTransmission = () => {
+      if (transmissionStepRef.current === -1) return;
+      const nodes = nodesRef.current;
+      const lines = connectionsRef.current;
+
+      if (
+        transmissionStepRef.current < nodes.length - 1 &&
+        !lines[transmissionStepRef.current]
+      ) {
+        lines.push({
+          from: nodes[transmissionStepRef.current],
+          to: nodes[transmissionStepRef.current + 1],
+          progress: 0,
+          complete: false,
+          color: "#2563eb",
+        });
+      }
+
+      const currentLine = lines[transmissionStepRef.current];
+      if (!currentLine) return;
+
+      if (currentLine.progress < 1) {
+        currentLine.progress = Math.min(1, currentLine.progress + 0.02);
+        if (currentLine.progress === 1) {
+          currentLine.complete = true;
+        }
+      }
+
+      if (currentLine.complete) {
+        transmissionStepRef.current += 1;
+        if (transmissionStepRef.current >= nodes.length - 1) {
+          setStatus({
+            tone: "complete",
+            text: "HANDSHAKE COMPLETE",
+            sub: "Data Delivered - Ack Received (0.4s)",
+          });
+        }
+      }
+    };
+
+    const render = () => {
+      timeRef.current += 1;
+      const { width, height } = boundsRef.current;
+
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.strokeStyle = "rgba(15, 23, 42, 0.03)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= width; x += GRID_SPACING) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= height; y += GRID_SPACING) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      updateTransmission();
+      nodesRef.current.forEach((node) => drawNode(ctx, node, timeRef.current));
+      connectionsRef.current.forEach((line) => drawConnection(ctx, line, timeRef.current));
+
+      animationRef.current = requestAnimationFrame(render);
+    };
+
+    const observer = new ResizeObserver(resizeCanvas);
+    observer.observe(container);
+    resizeCanvas();
+    animationRef.current = requestAnimationFrame(render);
+
+    return () => {
+      observer.disconnect();
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, [initialized]);
+
+  const startTransmission = () => {
+    if (!initialized || sendLocked || transmissionStepRef.current !== -1) return;
+    connectionsRef.current = [];
+    transmissionStepRef.current = 0;
+    setSendLocked(true);
+    setStatus({
+      tone: "active",
+      text: "PATHFINDING...",
+      sub: "Establishing secure relay path",
+    });
+  };
+
+  const resetTransmission = () => {
+    connectionsRef.current = [];
+    transmissionStepRef.current = -1;
+    setSendLocked(false);
+    setStatus({
+      tone: "idle",
+      text: "NETWORK IDLE",
+      sub: "All Tiles Verified - v2.4.18 Firmware",
+    });
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 shadow-sm h-[600px] md:h-[640px]"
+    >
+      <canvas ref={canvasRef} className="absolute inset-0 block h-full w-full" />
+
+      {!initialized ? (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-50/95">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">
+              Meshcore Node Infrastructure
+            </h2>
+            <button
+              type="button"
+              onClick={() => setInitialized(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-bold text-lg shadow-xl transition-all transform hover:scale-105 active:scale-95"
+            >
+              Initialize Network View
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-end p-4 md:p-8">
+        <div className="flex flex-col xl:flex-row items-stretch xl:items-end justify-center gap-4 md:gap-6">
+          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-5 shadow-md w-full xl:w-72">
+            <h3 className="font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2 flex items-center gap-2">
+              <span className="w-2 h-4 bg-blue-500 rounded-full" />
+              Node Types
+            </h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 border border-slate-200 rounded bg-white flex items-center justify-center">
+                  <div className="w-3 h-5 bg-slate-700 rounded-sm" />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-900 text-xs">Companion</div>
+                  <div className="text-slate-500 text-[10px]">Handheld Interface</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 border border-slate-200 rounded bg-white flex items-center justify-center">
+                  <div className="w-1 h-5 bg-slate-400" />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-900 text-xs">Repeater</div>
+                  <div className="text-slate-500 text-[10px]">Infrastructure</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pointer-events-auto bg-white/95 border border-slate-200 backdrop-blur-md rounded-2xl p-5 shadow-md w-full xl:min-w-[420px]">
+            <div className="text-center w-full">
+              <div
+                className={`${toneClass[status.tone]} font-mono text-xs font-black uppercase tracking-[0.2em]`}
+              >
+                {status.text}
+              </div>
+              <div className="text-slate-400 text-[10px] mt-1 uppercase font-bold tracking-wider">
+                {status.sub}
+              </div>
+            </div>
+
+            <div className="flex gap-2 w-full mt-3">
+              <button
+                type="button"
+                onClick={startTransmission}
+                disabled={sendLocked}
+                className="flex-1 bg-slate-900 hover:bg-slate-800 text-white disabled:bg-slate-200 disabled:text-slate-400 py-3.5 rounded-lg font-bold transition-all shadow-lg active:scale-95"
+              >
+                TRANSMIT SECURE DATA
+              </button>
+              <button
+                type="button"
+                onClick={resetTransmission}
+                className="bg-white hover:bg-slate-50 px-5 rounded-lg border border-slate-200 text-slate-500 transition-colors"
+              >
+                ↺
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  );
+};
+
+export default MeshNetworkTelemetry;
