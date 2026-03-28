@@ -174,6 +174,16 @@ const Navbar = ({ activeTab, setActiveTab }) => (
           R&D
         </button>
         <button
+          onClick={() => setActiveTab("video")}
+          className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
+            activeTab === "video"
+              ? "bg-slate-100 text-blue-600"
+              : "text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          Video
+        </button>
+        <button
           onClick={() => setActiveTab("docs")}
           className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
             activeTab === "docs"
@@ -219,36 +229,6 @@ const HomeView = ({
           <GitBranch size={14} /> GitHub
         </a>
       </div>
-    </section>
-
-    <section className="mb-16 rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm">
-      <div className="mb-6">
-        <h2 className="text-xl md:text-2xl font-bold text-slate-900">
-          MeshCore Video Walkthrough
-        </h2>
-        <p className="text-slate-500 text-sm mt-2">
-          Quick overview and demo video for setup and operation.
-        </p>
-      </div>
-      <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-100 aspect-video mb-4">
-        <iframe
-          title="MeshCore Video Walkthrough"
-          src="https://www.youtube.com/embed/PeThXmxLE4k?rel=0"
-          className="absolute inset-0 h-full w-full"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-        />
-      </div>
-      <a
-        href="https://www.youtube.com/watch?v=PeThXmxLE4k"
-        target="_blank"
-        rel="noreferrer"
-        className="inline-flex mb-8 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold text-xs hover:bg-slate-50 transition-all"
-      >
-        Open On YouTube
-      </a>
-
     </section>
 
     <section className="mb-16 rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm">
@@ -316,6 +296,39 @@ const HomeView = ({
           <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
         </div>
       ))}
+    </section>
+  </div>
+);
+
+const VideoView = () => (
+  <div className="w-full pt-32 pb-20 px-6 md:px-10 lg:px-14 animate-in fade-in duration-500">
+    <section className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-slate-900">
+          MeshCore Video Walkthrough
+        </h2>
+        <p className="text-slate-500 text-sm mt-2">
+          Quick overview and demo video for setup and operation.
+        </p>
+      </div>
+      <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-100 aspect-video mb-4">
+        <iframe
+          title="MeshCore Video Walkthrough"
+          src="https://www.youtube.com/embed/PeThXmxLE4k?rel=0"
+          className="absolute inset-0 h-full w-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allowFullScreen
+        />
+      </div>
+      <a
+        href="https://www.youtube.com/watch?v=PeThXmxLE4k"
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold text-xs hover:bg-slate-50 transition-all"
+      >
+        Open On YouTube
+      </a>
     </section>
   </div>
 );
@@ -540,6 +553,8 @@ const App = () => {
             telemetryStartSignal={telemetryStartSignal}
             telemetryAutoTransmitSignal={telemetryAutoTransmitSignal}
           />
+        ) : activeTab === "video" ? (
+          <VideoView />
         ) : activeTab === "docs" ? (
           <DocumentationView docs={documents} />
         ) : activeTab === "rnd" ? (
