@@ -68,7 +68,7 @@ const createNodes = (width, height, tileWidth, isMobile) => {
         ? mobileStartY + i * mobileStep
         : centerY + (i % 2 === 0 ? -yAmplitude : yAmplitude),
       tileWidth,
-      tileHeight: tileWidth * 1.18,
+      tileHeight: tileWidth * 1.1,
     });
   }
 
@@ -320,8 +320,8 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
       const isMobile = width < MOBILE_BREAKPOINT;
       mobileLayoutRef.current = isMobile;
       const tileWidth = isMobile
-        ? Math.max(102, Math.min(128, width * 0.33))
-        : Math.max(120, Math.min(180, width / 6));
+        ? Math.max(92, Math.min(112, width * 0.29))
+        : Math.max(106, Math.min(148, width / 7));
       nodesRef.current = createNodes(width, height, tileWidth, isMobile);
       connectionsRef.current = [];
       transmissionStepRef.current = -1;
@@ -569,22 +569,22 @@ const MeshNetworkTelemetry = ({ startSignal = 0, autoTransmitSignal = 0 }) => {
               Node Types
             </h3>
             <div className="space-y-3 text-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 border border-slate-200 rounded bg-white flex items-center justify-center">
-                  <div className="w-3 h-5 bg-slate-700 rounded-sm" />
-                </div>
-                <div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
                   <div className="font-bold text-slate-900 text-xs">Companion</div>
                   <div className="text-slate-500 text-[10px]">Handheld Interface</div>
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 border border-slate-200 rounded bg-white flex items-center justify-center">
-                  <div className="w-1 h-5 bg-slate-400" />
+                <div className="w-7 h-7 border border-slate-200 rounded bg-white flex items-center justify-center shrink-0">
+                  <div className="w-2.5 h-4.5 bg-slate-700 rounded-sm" />
                 </div>
-                <div>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
                   <div className="font-bold text-slate-900 text-xs">Repeater</div>
                   <div className="text-slate-500 text-[10px]">Infrastructure</div>
+                </div>
+                <div className="w-7 h-7 border border-slate-200 rounded bg-white flex items-center justify-center shrink-0">
+                  <div className="w-1 h-4.5 bg-slate-400" />
                 </div>
               </div>
             </div>
