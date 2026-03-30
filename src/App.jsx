@@ -129,6 +129,142 @@ const rndDocuments = [
   },
 ];
 
+const softwareGuidePdf = "/docs/meshcore-flasher-pro-user-guide.pdf";
+
+const softwareMeta = ["Windows Desktop", "USB Flashing", "Serial Console", "v1.0"];
+
+const softwareInstallSteps = [
+  "Download the official .exe installer.",
+  "If SmartScreen appears, click More info and then Run anyway.",
+  "Finish installer prompts and launch MeshCore Flasher Pro.",
+  "Connect a MeshCore-compatible device by USB and wait for detection.",
+];
+
+const softwareWorkflowSteps = [
+  "Connect one device first to avoid COM-port ambiguity.",
+  "Select the active device card in the left panel.",
+  "Choose firmware role: Companion BLE, Companion USB, Repeater, or Room Server.",
+  "Review firmware version entry (version + exact file name + release tag).",
+  "Press START FLASHING and monitor the Operation Log stages.",
+  "Wait for ready/complete before disconnecting the device.",
+];
+
+const firmwareSelectionModes = [
+  {
+    title: "Recognized Board",
+    detail:
+      "Loads board-compatible firmware options for the selected role and defaults to the newest compatible entry.",
+  },
+  {
+    title: "Unknown Board",
+    detail:
+      "Shows the full role catalog, flags catalog-wide selection, and requires manual compatibility verification before flashing.",
+  },
+];
+
+const flashFieldReference = [
+  {
+    field: "Firmware Role",
+    description:
+      "Sets transport and capability profile (Companion BLE/USB, Repeater, Room Server).",
+  },
+  {
+    field: "Firmware Version",
+    description:
+      "Auto-populated by catalog and displayed with version, file name, and release tag.",
+  },
+  {
+    field: "Auto-apply post-flash settings",
+    description:
+      "Runs post-flash checks/configuration automatically before marking the device ready.",
+  },
+  {
+    field: "START FLASHING",
+    description:
+      "Begins flash sequence. Operation Log is the authoritative status source.",
+  },
+  {
+    field: "Automatic Match",
+    description:
+      "Live target summary (board, COM port, role) with explicit warning for unknown boards.",
+  },
+  {
+    field: "Live Link Topology",
+    description:
+      "Visual host-to-node transport diagram shown at the bottom of the flash tab.",
+  },
+];
+
+const settingsStatus = [
+  {
+    feature: "Regular / Advanced mode toggle",
+    status: "ACTIVE",
+    notes: "Switches between standard and advanced UI views.",
+  },
+  {
+    feature: "TX power slider label",
+    status: "ACTIVE",
+    notes: "UI label is active; backend power control is still in progress.",
+  },
+  {
+    feature: "Custom Firmware selector / Clear",
+    status: "ACTIVE",
+    notes: "Fully functional local firmware select and clear workflow.",
+  },
+  {
+    feature: "API field persistence",
+    status: "ACTIVE",
+    notes: "Fields persist; desktop mode keeps them non-required.",
+  },
+  {
+    feature: "Device name / region / channel / role",
+    status: "PLACEHOLDER",
+    notes: "UI scaffold only; backend wiring pending.",
+  },
+  {
+    feature: "Quick Presets / Save & Apply / Backup / Restore",
+    status: "PLACEHOLDER",
+    notes: "Not active yet. Treat as non-functional for production use.",
+  },
+  {
+    feature: "Factory Reset / Recovery Mode / Diagnostics export",
+    status: "PLACEHOLDER",
+    notes: "Advanced controls are not yet active.",
+  },
+];
+
+const runtimeLogFiles = [
+  {
+    file: "state.json",
+    detail:
+      "Persisted application state, including last-used settings and selections.",
+  },
+  {
+    file: "verity.log",
+    detail: "Structured flash/runtime error telemetry for failure analysis.",
+  },
+  {
+    file: "startup.log",
+    detail: "Startup and runtime initialization events.",
+  },
+];
+
+const troubleshootingSteps = [
+  "Device not detected: replug USB, wait 5 seconds, then click Rescan.",
+  "Unknown board warning: verify firmware entry manually or use custom local firmware.",
+  "Flash fails immediately: check Operation Log and validate chip-family file type (.bin/.zip/.uf2).",
+  "Flash blocked: disconnect Serial Console first because port lock is active during serial sessions.",
+  "No firmware options: verify catalog/network availability or flash using local custom firmware.",
+];
+
+const operatorBestPractices = [
+  "Select the intended device card before role/version changes.",
+  "Reconfirm firmware role before every flash.",
+  "Use Operation Log as source of truth, not UI colors alone.",
+  "Never flash first catalog entry on unknown boards without validation.",
+  "Keep a known-good recovery firmware image stored locally.",
+];
+
 const Navbar = ({ activeTab, setActiveTab, guidedTab }) => (
   <nav className="fixed top-6 left-6 z-50">
     <div className="bg-white/80 backdrop-blur-md border border-slate-200 rounded-xl p-1.5 flex items-center gap-2 shadow-sm">
@@ -163,16 +299,16 @@ const Navbar = ({ activeTab, setActiveTab, guidedTab }) => (
           R&D
         </button>
         <button
-          onClick={() => setActiveTab("video")}
+          onClick={() => setActiveTab("software")}
           className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${
-            activeTab === "video"
+            activeTab === "software"
               ? "bg-slate-100 text-blue-600"
-              : guidedTab === "video"
+              : guidedTab === "software"
                 ? "bg-blue-100 text-blue-700"
                 : "text-slate-500 hover:text-slate-800"
-          }`}
+          } whitespace-nowrap`}
         >
-          Video
+          MeshCore Flasher Pro
         </button>
         <button
           onClick={() => setActiveTab("docs")}
@@ -242,21 +378,163 @@ const HomeView = ({
   </div>
 );
 
-const VideoView = () => (
+const SoftwareView = () => (
   <div className="w-full pt-32 pb-20 px-6 md:px-10 lg:px-14 animate-in fade-in duration-500">
     <section className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-900">MeshCore Video Hub</h2>
-        <p className="text-slate-500 text-sm mt-2">
-          Video content is currently unavailable on this page.
-        </p>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">MeshCore Flasher Pro</h2>
+          <p className="text-slate-500 text-sm mt-2 max-w-3xl leading-relaxed">
+            This page is built from the official MeshCore Flasher Pro PDF guide and
+            summarizes install, workflow, firmware selection, settings behavior,
+            troubleshooting, and operator best practices.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href={softwareGuidePdf}
+            download
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-[11px] hover:bg-blue-700 transition-all flex items-center gap-2"
+          >
+            <Download size={12} /> Download Guide
+          </a>
+          <a
+            href={softwareGuidePdf}
+            target="_blank"
+            rel="noreferrer"
+            className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold text-[11px] hover:bg-slate-50 transition-all flex items-center gap-2"
+          >
+            <ExternalLink size={12} /> Open PDF
+          </a>
+        </div>
       </div>
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 md:p-12">
-        <p className="text-slate-600 text-sm leading-relaxed">
-          Embedded YouTube playback has been removed. Add a local or approved
-          hosted video source here when ready.
-        </p>
+
+      <div className="mt-6 flex flex-wrap gap-2">
+        {softwareMeta.map((tag) => (
+          <span
+            key={tag}
+            className="text-[10px] font-black uppercase tracking-wider text-blue-700 bg-blue-100 px-2.5 py-1 rounded"
+          >
+            {tag}
+          </span>
+        ))}
       </div>
+    </section>
+
+    <section className="mt-8 grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 className="text-lg font-bold text-slate-900 mb-4">Install & Launch</h3>
+        <ol className="space-y-2">
+          {softwareInstallSteps.map((step, index) => (
+            <li key={step} className="text-sm text-slate-600 leading-relaxed flex gap-3">
+              <span className="text-blue-600 font-black text-xs mt-0.5">{index + 1}.</span>
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
+      </article>
+
+      <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 className="text-lg font-bold text-slate-900 mb-4">Normal Flash Workflow</h3>
+        <ol className="space-y-2">
+          {softwareWorkflowSteps.map((step, index) => (
+            <li key={step} className="text-sm text-slate-600 leading-relaxed flex gap-3">
+              <span className="text-blue-600 font-black text-xs mt-0.5">{index + 1}.</span>
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
+      </article>
+    </section>
+
+    <section className="mt-8 grid grid-cols-1 xl:grid-cols-2 gap-6">
+      {firmwareSelectionModes.map((mode) => (
+        <article
+          key={mode.title}
+          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        >
+          <h3 className="text-base font-bold text-slate-900 mb-2">{mode.title}</h3>
+          <p className="text-sm text-slate-600 leading-relaxed">{mode.detail}</p>
+        </article>
+      ))}
+    </section>
+
+    <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h3 className="text-lg font-bold text-slate-900 mb-4">Flash Tab Field Reference</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {flashFieldReference.map((item) => (
+          <article
+            key={item.field}
+            className="rounded-xl border border-slate-100 bg-slate-50/70 p-4"
+          >
+            <h4 className="text-sm font-bold text-slate-900 mb-1">{item.field}</h4>
+            <p className="text-xs text-slate-600 leading-relaxed">{item.description}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section className="mt-8 grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 className="text-lg font-bold text-slate-900 mb-4">Settings Status</h3>
+        <div className="space-y-3">
+          {settingsStatus.map((row) => (
+            <div key={row.feature} className="rounded-xl border border-slate-100 p-4">
+              <div className="flex items-center justify-between gap-3 mb-1.5">
+                <h4 className="text-sm font-bold text-slate-900">{row.feature}</h4>
+                <span
+                  className={`text-[9px] font-black px-2 py-1 rounded tracking-wider ${
+                    row.status === "ACTIVE"
+                      ? "text-emerald-700 bg-emerald-100"
+                      : "text-amber-700 bg-amber-100"
+                  }`}
+                >
+                  {row.status}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed">{row.notes}</p>
+            </div>
+          ))}
+        </div>
+      </article>
+
+      <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 className="text-lg font-bold text-slate-900 mb-4">Logs & Data Files</h3>
+        <div className="space-y-3">
+          {runtimeLogFiles.map((item) => (
+            <div key={item.file} className="rounded-xl border border-slate-100 p-4">
+              <h4 className="text-sm font-bold text-slate-900 mb-1">{item.file}</h4>
+              <p className="text-xs text-slate-600 leading-relaxed">{item.detail}</p>
+            </div>
+          ))}
+        </div>
+      </article>
+    </section>
+
+    <section className="mt-8 grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 className="text-lg font-bold text-slate-900 mb-4">Troubleshooting</h3>
+        <ul className="space-y-2">
+          {troubleshootingSteps.map((item) => (
+            <li key={item} className="text-sm text-slate-600 leading-relaxed flex gap-2">
+              <span className="text-blue-600/60 mt-1">*</span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </article>
+
+      <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 className="text-lg font-bold text-slate-900 mb-4">Operator Best Practices</h3>
+        <ul className="space-y-2">
+          {operatorBestPractices.map((item) => (
+            <li key={item} className="text-sm text-slate-600 leading-relaxed flex gap-2">
+              <span className="text-blue-600/60 mt-1">*</span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </article>
     </section>
   </div>
 );
@@ -472,7 +750,7 @@ const App = () => {
     setGuidedTab(null);
     guidedTimersRef.current.push(
       setTimeout(() => setGuidedTab("rnd"), 180),
-      setTimeout(() => setGuidedTab("video"), 780),
+      setTimeout(() => setGuidedTab("software"), 780),
       setTimeout(() => setGuidedTab("docs"), 1380),
       setTimeout(() => setGuidedTab(null), 2380),
     );
@@ -513,8 +791,8 @@ const App = () => {
             telemetryAutoTransmitSignal={telemetryAutoTransmitSignal}
             onTransmissionScrollComplete={runGuidedNavSequence}
           />
-        ) : activeTab === "video" ? (
-          <VideoView />
+        ) : activeTab === "software" ? (
+          <SoftwareView />
         ) : activeTab === "docs" ? (
           <DocumentationView docs={documents} />
         ) : activeTab === "rnd" ? (
