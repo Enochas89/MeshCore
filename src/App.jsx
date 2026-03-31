@@ -221,18 +221,21 @@ const settingsStatus = [
   },
   {
     feature: "Device name / region / channel / role",
-    status: "PLACEHOLDER",
-    notes: "UI scaffold only; backend wiring pending.",
+    status: "ACTIVE",
+    notes:
+      "Applied through the settings workflow and used by the production flashing flow.",
   },
   {
     feature: "Quick Presets / Save & Apply / Backup / Restore",
-    status: "PLACEHOLDER",
-    notes: "Not active yet. Treat as non-functional for production use.",
+    status: "ACTIVE",
+    notes:
+      "Preset selection and save/restore workflows are available for production operators.",
   },
   {
     feature: "Factory Reset / Recovery Mode / Diagnostics export",
-    status: "PLACEHOLDER",
-    notes: "Advanced controls are not yet active.",
+    status: "ACTIVE",
+    notes:
+      "Advanced maintenance controls are exposed in-app for recovery and support use.",
   },
 ];
 
