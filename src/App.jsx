@@ -130,11 +130,14 @@ const rndDocuments = [
 ];
 
 const softwareGuidePdf = "/docs/meshcore-flasher-pro-user-guide.pdf";
+const softwareInstallerVersion = "0.1.0";
+const softwareInstallerExe =
+  "https://github.com/Enochas89/MeshCore/releases/download/v0.1.0/MeshCoreFlasher-Desktop-Setup-0.1.0.exe";
 
 const softwareMeta = ["Windows Desktop", "USB Flashing", "Serial Console", "v1.0"];
 
 const softwareInstallSteps = [
-  "Download the official .exe installer.",
+  "Download the official .exe installer from this page.",
   "If SmartScreen appears, click More info and then Run anyway.",
   "Finish installer prompts and launch MeshCore Flasher Pro.",
   "Connect a MeshCore-compatible device by USB and wait for detection.",
@@ -392,9 +395,16 @@ const SoftwareView = () => (
         </div>
         <div className="flex flex-wrap gap-2">
           <a
-            href={softwareGuidePdf}
+            href={softwareInstallerExe}
             download
             className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-[11px] hover:bg-blue-700 transition-all flex items-center gap-2"
+          >
+            <Download size={12} /> Download Installer (.exe)
+          </a>
+          <a
+            href={softwareGuidePdf}
+            download
+            className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold text-[11px] hover:bg-slate-50 transition-all flex items-center gap-2"
           >
             <Download size={12} /> Download Guide
           </a>
@@ -418,6 +428,9 @@ const SoftwareView = () => (
             {tag}
           </span>
         ))}
+        <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded">
+          Installer v{softwareInstallerVersion}
+        </span>
       </div>
     </section>
 
