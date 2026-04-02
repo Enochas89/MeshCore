@@ -129,39 +129,40 @@ const rndDocuments = [
   },
 ];
 
-const softwareGuidePdf = "/docs/meshcore-flasher-pro-user-guide.pdf";
+const softwareGuidePdf = "/docs/meshcore-flasher-pro-manual.pdf";
 const softwareInstallerVersion = "0.1.0";
-const softwareInstallerExe =
-  "https://github.com/Enochas89/MeshCore/releases/download/v0.1.0/MeshCoreFlasher-Desktop-Setup-0.1.0.exe";
+const softwareInstallerBuildDate = "APR 2026";
+const softwareInstallerFile = `MeshCoreFlasher-Desktop-Setup-${softwareInstallerVersion}.exe`;
+const softwareInstallerExe = `https://github.com/Enochas89/MeshCore/releases/download/v${softwareInstallerVersion}/${softwareInstallerFile}`;
 
-const softwareMeta = ["Windows Desktop", "USB Flashing", "Serial Console", "v1.0"];
+const softwareMeta = ["Windows Desktop", "USB Flashing", "Serial Console", "User Guide v1.0"];
 
 const softwareInstallSteps = [
-  "Download the official .exe installer from this page.",
+  "Download the official .exe installer from the MeshCore distribution page.",
   "If SmartScreen appears, click More info and then Run anyway.",
-  "Finish installer prompts and launch MeshCore Flasher Pro.",
-  "Connect a MeshCore-compatible device by USB and wait for detection.",
+  "Complete the installer prompts and launch MeshCore Flasher Pro.",
+  "Connect your MeshCore-compatible device by USB and wait for it to appear in the left panel.",
 ];
 
 const softwareWorkflowSteps = [
   "Connect one device first to avoid COM-port ambiguity.",
-  "Select the active device card in the left panel.",
+  "Select the target device card in the left panel so it becomes the active flash target.",
   "Choose firmware role: Companion BLE, Companion USB, Repeater, or Room Server.",
-  "Review firmware version entry (version + exact file name + release tag).",
-  "Press START FLASHING and monitor the Operation Log stages.",
-  "Wait for ready/complete before disconnecting the device.",
+  "Review the firmware version entry (version, exact file name, and release tag).",
+  "Click START FLASHING and monitor the Operation Log, which is the source of truth.",
+  "Wait for completion (init -> asset resolution -> write -> verify -> ready) before disconnecting.",
 ];
 
 const firmwareSelectionModes = [
   {
     title: "Recognized Board",
     detail:
-      "Loads board-compatible firmware options for the selected role and defaults to the newest compatible entry.",
+      "Loads board-compatible firmware options for the selected role and preselects the newest compatible entry.",
   },
   {
     title: "Unknown Board",
     detail:
-      "Shows the full role catalog, flags catalog-wide selection, and requires manual compatibility verification before flashing.",
+      "Shows the full role catalog and warns that selection is catalog-wide, not board-specific. Verify file compatibility before flashing.",
   },
 ];
 
@@ -169,32 +170,32 @@ const flashFieldReference = [
   {
     field: "Firmware Role",
     description:
-      "Sets transport and capability profile (Companion BLE/USB, Repeater, Room Server).",
+      "Sets the target profile and transport expectations (Companion BLE/USB, Repeater, Room Server).",
   },
   {
     field: "Firmware Version",
     description:
-      "Auto-populated by catalog and displayed with version, file name, and release tag.",
+      "Auto-populated from the catalog by selected device and role; each entry shows version, file name, and release tag.",
   },
   {
     field: "Auto-apply post-flash settings",
     description:
-      "Runs post-flash checks/configuration automatically before marking the device ready.",
+      "Runs post-flash checks and configuration automatically before the device is marked ready.",
   },
   {
     field: "START FLASHING",
     description:
-      "Begins flash sequence. Operation Log is the authoritative status source.",
+      "Starts the flash sequence. Operation Log on the right is the authoritative status output.",
   },
   {
     field: "Automatic Match",
     description:
-      "Live target summary (board, COM port, role) with explicit warning for unknown boards.",
+      "Live target summary beneath the flash button (board, COM port, role) with warning for unknown boards.",
   },
   {
     field: "Live Link Topology",
     description:
-      "Visual host-to-node transport diagram shown at the bottom of the flash tab.",
+      "Visual host-to-node connection diagram at the bottom of the flash tab.",
   },
 ];
 
@@ -202,40 +203,37 @@ const settingsStatus = [
   {
     feature: "Regular / Advanced mode toggle",
     status: "ACTIVE",
-    notes: "Switches between standard and advanced UI views.",
+    notes: "Switches the UI display mode between standard and advanced views.",
   },
   {
     feature: "TX power slider label",
     status: "ACTIVE",
-    notes: "UI label is active; backend power control is still in progress.",
+    notes: "Label display is wired to UI. Backend control is still in progress.",
   },
   {
     feature: "Custom Firmware selector / Clear",
     status: "ACTIVE",
-    notes: "Fully functional local firmware select and clear workflow.",
+    notes: "Full select and clear functionality for local firmware workflow.",
   },
   {
     feature: "API field persistence",
     status: "ACTIVE",
-    notes: "Fields persist; desktop mode keeps them non-required.",
+    notes: "API key and tenant fields persist, and are disabled in desktop mode.",
   },
   {
     feature: "Device name / region / channel / role",
     status: "ACTIVE",
-    notes:
-      "Applied through the settings workflow and used by the production flashing flow.",
+    notes: "Device identity and network configuration fields are fully wired to backend.",
   },
   {
     feature: "Quick Presets / Save & Apply / Backup / Restore",
     status: "ACTIVE",
-    notes:
-      "Preset selection and save/restore workflows are available for production operators.",
+    notes: "Preset management plus configuration backup/restore are fully operational.",
   },
   {
     feature: "Factory Reset / Recovery Mode / Diagnostics export",
     status: "ACTIVE",
-    notes:
-      "Advanced maintenance controls are exposed in-app for recovery and support use.",
+    notes: "Advanced device controls and diagnostics export are fully available.",
   },
 ];
 
@@ -243,32 +241,35 @@ const runtimeLogFiles = [
   {
     file: "state.json",
     detail:
-      "Persisted application state, including last-used settings and selections.",
+      "Persisted application state that survives restarts, including last-used settings and selections.",
   },
   {
     file: "verity.log",
-    detail: "Structured flash/runtime error telemetry for failure analysis.",
+    detail: "Structured error telemetry. First file to check after a flash failure.",
   },
   {
     file: "startup.log",
-    detail: "Startup and runtime initialization events.",
+    detail: "Startup and runtime events for launch/initialization diagnostics.",
   },
 ];
 
 const troubleshootingSteps = [
-  "Device not detected: replug USB, wait 5 seconds, then click Rescan.",
-  "Unknown board warning: verify firmware entry manually or use custom local firmware.",
-  "Flash fails immediately: check Operation Log and validate chip-family file type (.bin/.zip/.uf2).",
-  "Flash blocked: disconnect Serial Console first because port lock is active during serial sessions.",
-  "No firmware options: verify catalog/network availability or flash using local custom firmware.",
+  "Device not detected: replug USB, wait 5 seconds, click Rescan, and verify cable/driver/COM visibility in Windows Device Manager.",
+  "Unknown board warning shown: validate the selected firmware file, prefer custom local firmware when needed, and do not blindly flash the first catalog item.",
+  "Flash fails immediately: check Operation Log for format or chip mismatch and verify the .bin/.zip/.uf2 matches the target chip family.",
+  "Serial console blocks flash/rescan: click Disconnect first. Flash and rescan are locked during an active serial session.",
+  "No firmware options loaded: check network/catalog availability and use local custom firmware via Settings as fallback.",
 ];
 
 const operatorBestPractices = [
-  "Select the intended device card before role/version changes.",
-  "Reconfirm firmware role before every flash.",
-  "Use Operation Log as source of truth, not UI colors alone.",
-  "Never flash first catalog entry on unknown boards without validation.",
-  "Keep a known-good recovery firmware image stored locally.",
+  "Always select the intended device card first before configuring role or version.",
+  "Confirm firmware role before every flash because role affects transport and compatibility.",
+  "For unknown boards, never flash the first catalog item without verifying the file.",
+  "Keep a known-good firmware file locally for recovery situations.",
+  "Use Operation Log as the source of truth, not only UI state colors.",
+  "Disconnect Serial Console before flashing because active sessions lock the COM port.",
+  "Check Policy version and Devices count in the top-right before starting.",
+  "Use Auto-apply post-flash settings unless you have a specific reason to disable it.",
 ];
 
 const Navbar = ({ activeTab, setActiveTab, guidedTab }) => (
@@ -409,7 +410,7 @@ const SoftwareView = () => (
             download
             className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold text-[11px] hover:bg-slate-50 transition-all flex items-center gap-2"
           >
-            <Download size={12} /> Download Guide
+            <Download size={12} /> Download Manual (PDF)
           </a>
           <a
             href={softwareGuidePdf}
@@ -417,7 +418,7 @@ const SoftwareView = () => (
             rel="noreferrer"
             className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold text-[11px] hover:bg-slate-50 transition-all flex items-center gap-2"
           >
-            <ExternalLink size={12} /> Open PDF
+            <ExternalLink size={12} /> Open Manual
           </a>
         </div>
       </div>
@@ -432,7 +433,7 @@ const SoftwareView = () => (
           </span>
         ))}
         <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded">
-          Installer v{softwareInstallerVersion}
+          Installer v{softwareInstallerVersion} ({softwareInstallerBuildDate})
         </span>
       </div>
     </section>
