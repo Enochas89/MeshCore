@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Shield,
   Cpu,
@@ -130,7 +130,7 @@ const rndDocuments = [
 ];
 
 const softwareGuidePdf = "/docs/meshcore-flasher-pro-manual.pdf";
-const softwareInstallerVersion = "0.1.0";
+const softwareInstallerVersion = "0.1.1";
 const softwareInstallerBuildDate = "APR 2026";
 const softwareInstallerFile = `MeshCoreFlasher-Desktop-Setup-${softwareInstallerVersion}.exe`;
 const softwareInstallerExe = `https://github.com/Enochas89/MeshCore/releases/download/v${softwareInstallerVersion}/${softwareInstallerFile}`;
@@ -858,3 +858,4 @@ const App = () => {
 };
 
 export default App;
+
